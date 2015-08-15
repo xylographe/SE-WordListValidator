@@ -46,7 +46,7 @@ namespace SubtitleEditWordListValidator
             {
                 var exc = e.Exception;
                 var cap = "Windows Forms Thread Exception";
-                var msg = string.Format("An application error occurred in SE-WordLists.\n\nError Message:\n{0}\n\nStack Trace:\n{1}", exc.Message, exc.StackTrace);
+                var msg = string.Format("An application error occurred in SE-WordListValidator.\n\nError Message:\n{0}\n\nStack Trace:\n{1}", exc.Message, exc.StackTrace);
                 dr = MessageBox.Show(msg, cap, MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
             }
             catch
@@ -63,7 +63,7 @@ namespace SubtitleEditWordListValidator
             try {
                 var exc = e.ExceptionObject as Exception;
                 var cap = "Non-UI Thread Exception";
-                var msg = string.Format("A fatal non-UI error occurred in SE-WordLists.\n\nError Message:\n{0}\n\nStack Trace:\n{1}", exc.Message, exc.StackTrace);
+                var msg = string.Format("A fatal non-UI error occurred in SE-WordListValidator.\n\nError Message:\n{0}\n\nStack Trace:\n{1}", exc.Message, exc.StackTrace);
                 MessageBox.Show(msg, cap, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch
