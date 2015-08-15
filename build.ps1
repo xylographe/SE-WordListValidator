@@ -21,6 +21,7 @@ param (
 	[switch]$Clean,
 	[switch]$Upkeep,
 	[switch]$Verbose,
+	[switch]$Archive,
 	[switch]$UpdateAssemblyInfo
 )
 $ErrorActionPreference = 'stop'; $Error.Clear(); $Error.Capacity = 16
@@ -197,6 +198,27 @@ function Upkeep {
 		$sha512.Dispose()
 	}
 }
+function Create-Archive {
+	$version = (select-string '^\[assembly: AssemblyVersion\("([^"]+)"\)\]' SE-WordListValidator\Properties\AssemblyInfo.cs).Matches[0].Groups[1].Value
+	do { $guid = [System.Guid]::NewGuid() } while ($guid.Equals([System.Guid]::Empty))
+	$zipfolder = $zipfile = $null
+	try {
+		$zipfile = new-item -force -type File -value $null -name "SE-WordListValidator-${version}.7z"
+		$zipfolder = new-item -type Directory -name $guid
+		copy-item -destination $zipfolder -literalpath README.txt, LICENSE.txt, SE-WordListValidator\bin\Release\SE-WordListValidator.exe
+		$zipfile.Delete()
+		$c = sevenz a -t7z -mx9 -mmt1 -m0=LZMA2:d=1024m:fb=273 -- "$($zipfile.FullName)" "$($zipfolder.FullName)\*" 2>&1
+		if ($?) {
+			explorer '/select,' $zipfile.FullName
+			$zipfile = $null
+		} else {
+			$c | write-host -foregroundcolor yellow
+		}
+	} finally {
+		if ($zipfolder) { try { $zipfolder.Delete($true) } catch { start-sleep -milliseconds 1500; try { $zipfolder.Delete($true) } catch { start-sleep -milliseconds 2500; try { $zipfolder.Delete($true) } catch {} } } }
+		if ($zipfile) { $zipfile.Delete() }
+	}
+}
 push-location -literalpath $TopLevelDirectoryName
 try {
 	if ($UpdateAssemblyInfo) {
@@ -215,6 +237,7 @@ try {
 	if ($Build -or (!$Upkeep -and !$Clean)) {
 		MSBuild SE-WordListValidator\SE-WordListValidator.sln /m /v:minimal /t:Rebuild /p:"Configuration=Release;Platform=Any CPU"
 	}
+	if ($Archive) { Create-Archive }
 } finally {
 	pop-location
 }
