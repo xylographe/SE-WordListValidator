@@ -26,6 +26,7 @@ namespace SubtitleEditWordListValidator
     {
         private readonly WordListFactory _wlf;
         private readonly Logger _log;
+        private string _dictionaryPath;
 
         public Main()
         {
@@ -40,7 +41,24 @@ namespace SubtitleEditWordListValidator
         {
             var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var dictdir = Path.Combine(appdata, "Subtitle Edit", "Dictionaries");
+            if (Directory.Exists(dictdir))
+            {
+                GetDictionaryFiles(dictdir);
+            }
+            else
+            {
+                using (var fDialog = new FolderBrowserDialog())
+                {
+                    if (fDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        GetDictionaryFiles(fDialog.SelectedPath);
+                    }
+                }
+            }
+        }
 
+        private void GetDictionaryFiles(string dictdir)
+        {
             foreach (var path in Directory.EnumerateFiles(dictdir, "*OCRFixReplaceList.xml"))
             {
                 var wl = _wlf.CreateOcrFixReplaceList(path);
@@ -143,5 +161,22 @@ namespace SubtitleEditWordListValidator
             }
         }
 
+        private void browserToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (var fb = new FolderBrowserDialog())
+            {
+                if (fb.ShowDialog() == DialogResult.OK)
+                {
+                    _dictionaryPath = fb.SelectedPath;
+                    Reload(_dictionaryPath);
+                }
+            }
+        }
+
+        private void Reload(string path)
+        {
+            // Todo: Cleanup conatiners
+            GetDictionaryFiles(path);
+        }
     }
 }
