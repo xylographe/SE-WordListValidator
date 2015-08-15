@@ -20,7 +20,8 @@ param (
 	[switch]$Build,
 	[switch]$Clean,
 	[switch]$Upkeep,
-	[switch]$Verbose
+	[switch]$Verbose,
+	[switch]$UpdateAssemblyInfo
 )
 $ErrorActionPreference = 'stop'; $Error.Clear(); $Error.Capacity = 16
 $TopLevelDirectoryName = (get-item -force -literalpath $myInvocation.myCommand.Path).DirectoryName
@@ -198,6 +199,14 @@ function Upkeep {
 }
 push-location -literalpath $TopLevelDirectoryName
 try {
+	if ($UpdateAssemblyInfo) {
+		$githash = git rev-parse --verify HEAD
+		$revno = git describe --tags
+		$revno = if ($?) {"$(1 + "${revno}-0".Split('-')[1])"} else {'0'}
+		((get-content -encoding UTF8 -literalpath SE-WordListValidator\Properties\AssemblyInfo.template.cs) -creplace '\[GITHASH\]', $githash) -creplace '\[REVNO\]', $revno |
+			set-content -encoding UTF8 -literalpath SE-WordListValidator\Properties\AssemblyInfo.cs
+		exit 0
+	}
 #	get-process -erroraction:SilentlyContinue -processname MSBuild | stop-process
 	get-childitem -force -recurse -include TestResults, Release, Debug, *.7z | remove-item -force -recurse
 	if ($Upkeep -or (!$Clean -and !$Build)) {
