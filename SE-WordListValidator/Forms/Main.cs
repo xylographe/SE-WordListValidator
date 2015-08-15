@@ -38,29 +38,83 @@ namespace SubtitleEditWordListValidator
 
         private void Main_Load(object sender, EventArgs e)
         {
-            var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var dictdir = Path.Combine(appdata, "Subtitle Edit", "Dictionaries");
+            var dictdir = GetDictionaryPath();
+            if (dictdir != null)
+            {
+                foreach (var path in Directory.EnumerateFiles(dictdir, "*_OCRFixReplaceList.xml"))
+                {
+                    var wl = _wlf.CreateOcrFixReplaceList(path);
+                    treeViewWordLists.Nodes[0].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
+                }
+                foreach (var path in Directory.EnumerateFiles(dictdir, "*_NoBreakAfterList.xml"))
+                {
+                    var wl = _wlf.CreateNoBreakAfterList(path);
+                    treeViewWordLists.Nodes[1].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
+                }
+                foreach (var path in Directory.EnumerateFiles(dictdir, "*names_etc.xml"))
+                {
+                    var wl = _wlf.CreateNamesEtcList(path);
+                    treeViewWordLists.Nodes[2].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
+                }
+                foreach (var path in Directory.EnumerateFiles(dictdir, "??_??_user.xml"))
+                {
+                    var wl = _wlf.CreateUserList(path);
+                    treeViewWordLists.Nodes[3].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
+                }
+            }
+        }
 
-            foreach (var path in Directory.EnumerateFiles(dictdir, "*OCRFixReplaceList.xml"))
+        private string GetDictionaryPath()
+        {
+            try
             {
-                var wl = _wlf.CreateOcrFixReplaceList(path);
-                treeViewWordLists.Nodes[0].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
+                var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                var path = Path.Combine(appdata, "Subtitle Edit", "Dictionaries");
+                if (Directory.Exists(path))
+                {
+                    return path;
+                }
             }
-            foreach (var path in Directory.EnumerateFiles(dictdir, "*NoBreakAfterList.xml"))
+            catch
             {
-                var wl = _wlf.CreateNoBreakAfterList(path);
-                treeViewWordLists.Nodes[1].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
             }
-            foreach (var path in Directory.EnumerateFiles(dictdir, "*names_etc.xml"))
+
+            try
             {
-                var wl = _wlf.CreateNamesEtcList(path);
-                treeViewWordLists.Nodes[2].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
+                var mypath = System.Reflection.Assembly.GetEntryAssembly().Location;
+                if (!string.IsNullOrEmpty(mypath))
+                {
+                    var path = Path.Combine(Path.GetDirectoryName(mypath), "Dictionaries");
+                    if (Directory.Exists(path))
+                    {
+                        return path;
+                    }
+                }
             }
-            foreach (var path in Directory.EnumerateFiles(dictdir, "??_??_user.xml"))
+            catch
             {
-                var wl = _wlf.CreateUserList(path);
-                treeViewWordLists.Nodes[3].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
             }
+
+            using (var fbd = new FolderBrowserDialog { Description = "Select dictionary folder", ShowNewFolderButton = false })
+            {
+                try
+                {
+                    fbd.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                }
+                catch
+                {
+                }
+                if (fbd.ShowDialog(this) == DialogResult.OK)
+                {
+                    var path = fbd.SelectedPath;
+                    if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+                    {
+                        return path;
+                    }
+                }
+            }
+
+            return null;
         }
 
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
