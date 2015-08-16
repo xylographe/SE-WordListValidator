@@ -47,11 +47,14 @@ namespace SubtitleEditWordListValidator
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.TreeNode treeNode5 = new System.Windows.Forms.TreeNode("OCRFixReplace");
-            System.Windows.Forms.TreeNode treeNode6 = new System.Windows.Forms.TreeNode("NoBreakAfter");
-            System.Windows.Forms.TreeNode treeNode7 = new System.Windows.Forms.TreeNode("NamesEtc");
-            System.Windows.Forms.TreeNode treeNode8 = new System.Windows.Forms.TreeNode("User");
+            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("OCRFixReplace");
+            System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("NoBreakAfter");
+            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("NamesEtc");
+            System.Windows.Forms.TreeNode treeNode4 = new System.Windows.Forms.TreeNode("User");
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
+            this.menuStripWordLists = new System.Windows.Forms.MenuStrip();
+            this.toolStripMenuItemDictionary = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemDictionaryFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.treeViewWordLists = new System.Windows.Forms.TreeView();
             this.textBoxTerminal = new System.Windows.Forms.TextBox();
             this.contextMenuStripWordLists = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -65,6 +68,7 @@ namespace SubtitleEditWordListValidator
             this.splitContainerMain.Panel2.SuspendLayout();
             this.splitContainerMain.SuspendLayout();
             this.contextMenuStripWordLists.SuspendLayout();
+            this.menuStripWordLists.SuspendLayout();
             this.SuspendLayout();
             //
             // splitContainerMain
@@ -77,6 +81,7 @@ namespace SubtitleEditWordListValidator
             // splitContainerMain.Panel1
             //
             this.splitContainerMain.Panel1.Controls.Add(this.treeViewWordLists);
+            this.splitContainerMain.Panel1.Controls.Add(this.menuStripWordLists);
             this.splitContainerMain.Panel1MinSize = 111;
             //
             // splitContainerMain.Panel2
@@ -88,27 +93,57 @@ namespace SubtitleEditWordListValidator
             this.splitContainerMain.SplitterWidth = 3;
             this.splitContainerMain.TabIndex = 0;
             //
+            // menuStripWordLists
+            //
+            this.menuStripWordLists.BackColor = System.Drawing.SystemColors.MenuBar;
+            this.menuStripWordLists.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.menuStripWordLists.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItemDictionary});
+            this.menuStripWordLists.Location = new System.Drawing.Point(0, 0);
+            this.menuStripWordLists.Name = "menuStripWordLists";
+            this.menuStripWordLists.Padding = new System.Windows.Forms.Padding(4, 2, 4, 2);
+            this.menuStripWordLists.ShowItemToolTips = true;
+            this.menuStripWordLists.Size = new System.Drawing.Size(181, 24);
+            this.menuStripWordLists.TabIndex = 0;
+            //
+            // toolStripMenuItemDictionary
+            //
+            this.toolStripMenuItemDictionary.AutoToolTip = false;
+            this.toolStripMenuItemDictionary.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItemDictionaryFolder});
+            this.toolStripMenuItemDictionary.Name = "toolStripMenuItemDictionary";
+            this.toolStripMenuItemDictionary.Size = new System.Drawing.Size(73, 20);
+            this.toolStripMenuItemDictionary.Text = "&Dictionary";
+            //
+            // toolStripMenuItemDictionaryFolder
+            //
+            this.toolStripMenuItemDictionary.AutoToolTip = false;
+            this.toolStripMenuItemDictionaryFolder.Name = "toolStripMenuItemDictionaryFolder";
+            this.toolStripMenuItemDictionaryFolder.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItemDictionaryFolder.Text = "Change &folder";
+            this.toolStripMenuItemDictionaryFolder.Click += new System.EventHandler(this.ToolStripMenuItemDictionaryFolder_Click);
+            //
             // treeViewWordLists
             //
             this.treeViewWordLists.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeViewWordLists.ItemHeight = 20;
-            this.treeViewWordLists.Location = new System.Drawing.Point(0, 0);
+            this.treeViewWordLists.Location = new System.Drawing.Point(0, 24);
             this.treeViewWordLists.Name = "treeViewWordLists";
-            treeNode5.Name = "NodeOCRFix";
-            treeNode5.Text = "OCRFixReplace";
-            treeNode6.Name = "NodeNoBreak";
-            treeNode6.Text = "NoBreakAfter";
-            treeNode7.Name = "NodeNames";
-            treeNode7.Text = "NamesEtc";
-            treeNode8.Name = "NodeUser";
-            treeNode8.Text = "User";
+            treeNode1.Name = "NodeOCRFix";
+            treeNode1.Text = "OCRFixReplace";
+            treeNode2.Name = "NodeNoBreak";
+            treeNode2.Text = "NoBreakAfter";
+            treeNode3.Name = "NodeNames";
+            treeNode3.Text = "NamesEtc";
+            treeNode4.Name = "NodeUser";
+            treeNode4.Text = "User";
             this.treeViewWordLists.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode5,
-            treeNode6,
-            treeNode7,
-            treeNode8});
-            this.treeViewWordLists.Size = new System.Drawing.Size(181, 600);
-            this.treeViewWordLists.TabIndex = 0;
+            treeNode1,
+            treeNode2,
+            treeNode3,
+            treeNode4});
+            this.treeViewWordLists.Size = new System.Drawing.Size(181, 576);
+            this.treeViewWordLists.TabIndex = 1;
             this.treeViewWordLists.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.TreeViewWordLists_NodeMouseDoubleClick);
             //
             // textBoxTerminal
@@ -180,15 +215,18 @@ namespace SubtitleEditWordListValidator
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.MinimumSize = new System.Drawing.Size(416, 338);
             this.Name = "Main";
-            this.Text = "Update Subtitle Edit word lists";
+            this.Text = "Validate Subtitle Edit word lists";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
             this.Load += new System.EventHandler(this.Main_Load);
             this.splitContainerMain.Panel1.ResumeLayout(false);
+            this.splitContainerMain.Panel1.PerformLayout();
             this.splitContainerMain.Panel2.ResumeLayout(false);
             this.splitContainerMain.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).EndInit();
             this.splitContainerMain.ResumeLayout(false);
             this.contextMenuStripWordLists.ResumeLayout(false);
+            this.menuStripWordLists.ResumeLayout(false);
+            this.menuStripWordLists.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -196,13 +234,16 @@ namespace SubtitleEditWordListValidator
         #endregion
 
         private System.Windows.Forms.SplitContainer splitContainerMain;
+        private System.Windows.Forms.MenuStrip menuStripWordLists;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemDictionary;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemDictionaryFolder;
         private System.Windows.Forms.TreeView treeViewWordLists;
+        private System.Windows.Forms.TextBox textBoxTerminal;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripWordLists;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemWordListsValidate;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemWordListsEdit;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemWordListsSubmit;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemWordListsAcceopt;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemWordListsReject;
-        private System.Windows.Forms.TextBox textBoxTerminal;
     }
 }

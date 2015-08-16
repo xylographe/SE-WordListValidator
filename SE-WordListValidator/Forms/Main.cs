@@ -24,8 +24,12 @@ namespace SubtitleEditWordListValidator
 {
     public sealed partial class Main : Form
     {
+        private delegate bool StringEquals(string a, string b);
+
+        private readonly StringEquals EqualPathNames;
         private readonly WordListFactory _wlf;
         private readonly Logger _log;
+        private string _dictdir;
 
         public Main()
         {
@@ -34,33 +38,66 @@ namespace SubtitleEditWordListValidator
 
             _log = new Logger(textBoxTerminal);
             _wlf = new WordListFactory(_log);
+
+            var osPlatform = (int)Environment.OSVersion.Platform;
+            var isLikeWindows = !(osPlatform == 4 || osPlatform == 6 || osPlatform == 128);
+            EqualPathNames = isLikeWindows ? new StringEquals(StringEqualsOrdinalIgnoreCase) : new StringEquals(StringEqualsOrdinal);
+        }
+
+        private bool StringEqualsOrdinalIgnoreCase(string a, string b)
+        {
+            return a.Equals(b, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool StringEqualsOrdinal(string a, string b)
+        {
+            return a.Equals(b, StringComparison.Ordinal);
         }
 
         private void Main_Load(object sender, EventArgs e)
         {
-            var dictdir = GetDictionaryPath();
-            if (dictdir != null)
+            InitializeWordListView(GetDictionaryPath());
+        }
+
+        private void ToolStripMenuItemDictionaryFolder_Click(object sender, EventArgs e)
+        {
+            InitializeWordListView(UserDictionaryPath());
+        }
+
+        private void InitializeWordListView(string dictdir)
+        {
+            if (dictdir != null && !EqualPathNames(dictdir, _dictdir))
             {
+                _wlf.Close(this);
+
+                toolStripMenuItemDictionary.ToolTipText = string.Empty;
+                treeViewWordLists.Nodes[0].Nodes.Clear();
                 foreach (var path in Directory.EnumerateFiles(dictdir, "*_OCRFixReplaceList.xml"))
                 {
                     var wl = _wlf.CreateOcrFixReplaceList(path);
                     treeViewWordLists.Nodes[0].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
+                treeViewWordLists.Nodes[1].Nodes.Clear();
                 foreach (var path in Directory.EnumerateFiles(dictdir, "*_NoBreakAfterList.xml"))
                 {
                     var wl = _wlf.CreateNoBreakAfterList(path);
                     treeViewWordLists.Nodes[1].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
+                treeViewWordLists.Nodes[2].Nodes.Clear();
                 foreach (var path in Directory.EnumerateFiles(dictdir, "*names_etc.xml"))
                 {
                     var wl = _wlf.CreateNamesEtcList(path);
                     treeViewWordLists.Nodes[2].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
+                treeViewWordLists.Nodes[3].Nodes.Clear();
                 foreach (var path in Directory.EnumerateFiles(dictdir, "??_??_user.xml"))
                 {
                     var wl = _wlf.CreateUserList(path);
                     treeViewWordLists.Nodes[3].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
+                toolStripMenuItemDictionary.ToolTipText = dictdir;
+
+                _dictdir = dictdir;
             }
         }
 
@@ -95,6 +132,11 @@ namespace SubtitleEditWordListValidator
             {
             }
 
+            return UserDictionaryPath();
+        }
+
+        private string UserDictionaryPath()
+        {
             using (var fbd = new FolderBrowserDialog { Description = "Select dictionary folder", ShowNewFolderButton = false })
             {
                 try
@@ -109,11 +151,10 @@ namespace SubtitleEditWordListValidator
                     var path = fbd.SelectedPath;
                     if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
                     {
-                        return path;
+                        return Path.GetFullPath(path);
                     }
                 }
             }
-
             return null;
         }
 

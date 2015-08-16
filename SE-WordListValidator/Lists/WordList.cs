@@ -117,6 +117,7 @@ namespace SubtitleEditWordListValidator
             {
                 wl.Close(owner);
             }
+            WordLists.Clear();
         }
 
     }
