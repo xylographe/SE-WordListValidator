@@ -222,9 +222,15 @@ function Create-Archive {
 push-location -literalpath $TopLevelDirectoryName
 try {
 	if ($UpdateAssemblyInfo) {
-		$githash = git rev-parse --verify HEAD
-		$revno = git describe --tags
-		$revno = if ($?) {"$(1 + "${revno}-0".Split('-')[1])"} else {'0'}
+		$githash = [string]::Empty
+		$revno = '0'
+		try {
+			$githash = git rev-parse --verify HEAD 2>&1
+			$revno = git describe --tags 2>&1
+			$revno = "$(1 + "${revno}-0".Split('-')[1])"
+		} catch {
+			$Host.UI.WriteWarningLine($_.Exception.Message)
+		}
 		((get-content -encoding UTF8 -literalpath SE-WordListValidator\Properties\AssemblyInfo.template.cs) -creplace '\[GITHASH\]', $githash) -creplace '\[REVNO\]', $revno |
 			set-content -encoding UTF8 -literalpath SE-WordListValidator\Properties\AssemblyInfo.cs
 		exit 0
