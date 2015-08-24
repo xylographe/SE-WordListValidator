@@ -26,6 +26,12 @@ param (
 )
 $ErrorActionPreference = 'stop'; $Error.Clear(); $Error.Capacity = 16
 $TopLevelDirectoryName = (get-item -force -literalpath $myInvocation.myCommand.Path).DirectoryName
+$MSBuildPath = $null
+try {
+	$null = get-command -name MSBuild
+} catch {
+	$MSBuildPath = "$(join-path (split-path -literalpath ([object].Assembly.Location)) MSBuild.exe)"
+}
 
 function Upkeep {
 	filter XmlShortTagElements {
@@ -241,7 +247,11 @@ try {
 		Upkeep
 	}
 	if ($Build -or (!$Upkeep -and !$Clean)) {
-		MSBuild SE-WordListValidator\SE-WordListValidator.sln /m /v:minimal /t:Rebuild /p:"Configuration=Release;Platform=Any CPU"
+		if ($MSBuildPath) {
+			&$MSBuildPath SE-WordListValidator\SE-WordListValidator.sln /m /v:minimal /t:Rebuild /p:"Configuration=Release;Platform=Any CPU"
+		} else {
+			MSBuild SE-WordListValidator\SE-WordListValidator.sln /m /v:minimal /t:Rebuild /p:"Configuration=Release;Platform=Any CPU"
+		}
 	}
 	if ($Archive) { Create-Archive }
 } finally {
