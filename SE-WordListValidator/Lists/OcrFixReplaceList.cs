@@ -194,11 +194,11 @@ namespace SubtitleEditWordListValidator
                                     list.Elements.Add(key, item);
                                     try
                                     {
-                                        _regex = new Regex(reader.Value, RegexOptions.CultureInvariant);
+                                        _regex = new Regex(find, RegexOptions.CultureInvariant);
                                     }
                                     catch (Exception ex)
                                     {
-                                        throw new Exception(string.Format("Invalid regex \"{0}\": {1}", reader.Value, ex.Message));
+                                        throw new Exception(string.Format("Invalid regex \"{0}\": {1}", find, ex.Message));
                                     }
                                     item.SetAttribute("find", find);
                                     item.SetAttribute("replaceWith", repl);
