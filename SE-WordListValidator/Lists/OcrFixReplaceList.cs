@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 
@@ -200,6 +201,7 @@ namespace SubtitleEditWordListValidator
                                     {
                                         throw new Exception(string.Format("Invalid regex \"{0}\": {1}", find, ex.Message));
                                     }
+                                    repl = ValidateReplacementPattern(reader, _regex, repl);
                                     item.SetAttribute("find", find);
                                     item.SetAttribute("replaceWith", repl);
                                 }
@@ -362,6 +364,111 @@ namespace SubtitleEditWordListValidator
                     }
                 }
                 throw new Exception(string.Format("Unexpected {0} node in <{1}>", reader.NodeType, list.NodeSelf.Name));
+            }
+
+            private string ValidateReplacementPattern(XmlReader reader, Regex find, string repl)
+            {
+                var sb = new StringBuilder(repl).Append('\0');
+                int index = -1;
+                int mode = 0;
+                while (++index < sb.Length)
+                {
+                    char c = sb[index];
+                    switch (mode)
+                    {
+                        case 0:
+                            if (c == '$')
+                            {
+                                mode = 2;
+                            }
+                            break;
+                        case 1: // $$
+                            if ("0123456789{".IndexOf(c) >= 0)
+                            {
+                                Warn(reader, string.Format("replaceWith=\"{0}\" - Perhaps you meant \"{1}${2}\"?", repl, sb.ToString(0, index), c));
+                            }
+                            index -= 1;
+                            mode = 0;
+                            break;
+                        case 2: // $
+                            mode = 0;
+                            switch (c)
+                            {
+                                case '0': case '1': case '2': case '3': case '4':
+                                case '5': case '6': case '7': case '8': case '9':
+                                    mode = 3;
+                                    break;
+                                case '{':
+                                    mode = 4;
+                                    break;
+                                case '$':
+                                    mode = 1;
+                                    break;
+                                case '\'':
+                                case '`':
+                                case '_':
+                                    Warn(reader, string.Format("replaceWith=\"{0}\" - Are you sure you want \"${1}\" in the replacement pattern?", repl, c));
+                                    break;
+                                case '&':
+                                case '+':
+                                    break;
+                                default:
+                                    sb.Insert(index, '$');
+                                    break;
+                            }
+                            break;
+                        case 3: // $[0-9]+
+                            if ("0123456789".IndexOf(c) < 0)
+                            {
+                                var start = sb.ToString(0, index).LastIndexOf('$') + 1;
+                                var group = sb.ToString(start, index - start);
+                                if (find.GroupNumberFromName(group) < 0)
+                                {
+                                    Warn(reader, string.Format("replaceWith=\"{0}\" - Group \"{1}\" is not defined in the regular expression pattern!", repl, group));
+                                }
+                                index -= 1;
+                                mode = 0;
+                            }
+                            break;
+                        case 4: // ${
+                            mode = 5;
+                            if ("_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".IndexOf(c) < 0)
+                            {
+                                Warn(reader, string.Format("replaceWith=\"{0}\" - Invalid group identifier \"{1}\"?", repl, sb.ToString(index - 2, 3)));
+                                index -= 1;
+                                mode = 0;
+                            }
+                            break;
+                        case 5: // ${[0-9A-Za-z]+
+                            if (c == '}')
+                            {
+                                var start = sb.ToString(0, index).LastIndexOf('{') + 1;
+                                var group = sb.ToString(start, index - start);
+                                if (find.GroupNumberFromName(group) < 0)
+                                {
+                                    Warn(reader, string.Format("replaceWith=\"{0}\" - Group \"{1}\" is not defined in the regular expression pattern!", repl, group));
+                                }
+                                mode = 0;
+                            }
+                            else if ("_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".IndexOf(c) < 0)
+                            {
+                                var start = sb.ToString(0, index).LastIndexOf('$');
+                                Warn(reader, string.Format("replaceWith=\"{0}\" - Invalid group identifier \"{1}\"?", repl, sb.ToString(start, index - start)));
+                                index -= 1;
+                                mode = 0;
+                            }
+                            break;
+                    }
+                }
+                return sb.ToString(0, sb.Length - 1);
+            }
+
+            private void Warn(XmlReader reader, string msg)
+            {
+                var t = reader.GetType();
+                var ln = t.GetProperty("LineNumber").GetValue(reader);
+                var col = t.GetProperty("LinePosition").GetValue(reader);
+                _factory.Logger.Warn(string.Format("line {0} column {1}: {2}", ln, col, msg));
             }
 
         }
