@@ -25,7 +25,7 @@ namespace SubtitleEditWordListValidator
     {
         private const string pVerbose = "VERBOSE\t: ";
         private const string pError   = "ERROR\t: ";
-        private const string pWarn    = "WARNING\t: ";
+        private const string pWarn    = "WARNING: ";
         private const string pInfo    = "INFO\t: ";
 
         private TextBox _out;
