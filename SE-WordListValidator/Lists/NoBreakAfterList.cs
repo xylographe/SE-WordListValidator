@@ -109,22 +109,33 @@ namespace SubtitleEditWordListValidator
                             }
                             element = null;
                         }
-                        if (!reader.IsEmptyElement && reader.AttributeCount == 1 && reader.Name == "Item" && (isRegex = reader["RegEx"]) != null)
+                        isRegex = null;
+                        if (!reader.IsEmptyElement && reader.Name.Equals("Item", StringComparison.OrdinalIgnoreCase))
                         {
-                            try
+                            if (reader.AttributeCount == 1)
                             {
-                                isRegex = Convert.ToBoolean(isRegex) ? reTrue : reFalse;
+                                reader.MoveToAttribute(0);
+                                var attrName = reader.Name;
+                                var attrValue = reader.Value;
+                                reader.MoveToElement();
+                                if (attrName.Equals("RegEx", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    try
+                                    {
+                                        isRegex = Convert.ToBoolean(attrValue) ? reTrue : reFalse;
+                                    }
+                                    catch
+                                    {
+                                        throw new Exception(string.Format("Invalid attribute value <{0} RegEx=\"{1}\"> in <{2}>", reader.Name, attrValue, root.Name));
+                                    }
+                                }
                             }
-                            catch
+                            else if (reader.AttributeCount == 0)
                             {
-                                throw new Exception(string.Format("Invalid attribute value <{0} Regex=\"{1}\"> in <{2}>", reader.Name, isRegex, root.Name));
+                                isRegex = reFalse;
                             }
                         }
-                        else if (!reader.IsEmptyElement && !reader.HasAttributes && reader.Name == "Item")
-                        {
-                            isRegex = reFalse;
-                        }
-                        else
+                        if (isRegex == null)
                         {
                             throw new Exception(string.Format("Invalid element <{0}…> in <{1}>", reader.Name, root.Name));
                         }

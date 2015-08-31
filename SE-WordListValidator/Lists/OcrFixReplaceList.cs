@@ -75,7 +75,7 @@ namespace SubtitleEditWordListValidator
                                  CreateDelegate(typeof(SubListValidator), this);
                     var node = document.CreateElement(sld.Name);
                     root.AppendChild(node);
-                    lists.Add(sld.Name, new SubList { NodeSelf = node, ItemName = sld.ItemName, Validate = method, Elements = new Dictionary<string, XmlElement>() });
+                    lists.Add(sld.Name.ToUpperInvariant(), new SubList { NodeSelf = node, ItemName = sld.ItemName, Validate = method, Elements = new Dictionary<string, XmlElement>() });
                 }
                 var comments = new List<XmlNode>();
                 var element  = (XmlElement)null;
@@ -106,9 +106,9 @@ namespace SubtitleEditWordListValidator
                     }
                     else if (reader.Depth == 1 && reader.NodeType == XmlNodeType.Element)
                     {
-                        if (!reader.HasAttributes && lists.ContainsKey(reader.Name))
+                        if (!reader.HasAttributes && lists.ContainsKey(reader.Name.ToUpperInvariant()))
                         {
-                            var list = lists[reader.Name];
+                            var list = lists[reader.Name.ToUpperInvariant()];
                             if (comments.Count > 0)
                             {
                                 foreach (var c in comments)
@@ -177,10 +177,33 @@ namespace SubtitleEditWordListValidator
                     if (reader.Depth == 2 && reader.NodeType == XmlNodeType.Element)
                     {
                         var item = (XmlElement)null;
-                        if (reader.IsEmptyElement && reader.AttributeCount == 2 && reader.Name == list.ItemName)
+                        if (reader.IsEmptyElement && reader.AttributeCount == 2 && reader.Name.Equals(list.ItemName, StringComparison.OrdinalIgnoreCase))
                         {
-                            var find = reader["find"];
-                            var repl = reader["replaceWith"];
+                            var find = (string)null;
+                            var repl = (string)null;
+                            {
+                                reader.MoveToAttribute(0);
+                                switch (reader.Name.ToUpperInvariant())
+                                {
+                                    case "FIND":
+                                        find = reader.Value;
+                                        break;
+                                    case "REPLACEWITH":
+                                        repl = reader.Value;
+                                        break;
+                                }
+                                reader.MoveToAttribute(1);
+                                switch (reader.Name.ToUpperInvariant())
+                                {
+                                    case "FIND":
+                                        find = reader.Value;
+                                        break;
+                                    case "REPLACEWITH":
+                                        repl = reader.Value;
+                                        break;
+                                }
+                                reader.MoveToElement();
+                            }
                             if (!string.IsNullOrEmpty(find) && repl != null)
                             {
                                 var key = find + "\u0000" + repl;
@@ -280,10 +303,33 @@ namespace SubtitleEditWordListValidator
                     if (reader.Depth == 2 && reader.NodeType == XmlNodeType.Element)
                     {
                         var item = (XmlElement)null;
-                        if (reader.IsEmptyElement && reader.AttributeCount == 2 && reader.Name == list.ItemName)
+                        if (reader.IsEmptyElement && reader.AttributeCount == 2 && reader.Name.Equals(list.ItemName, StringComparison.OrdinalIgnoreCase))
                         {
-                            var from = reader["from"];
-                            var to = reader["to"];
+                            var from = (string)null;
+                            var to = (string)null;
+                            {
+                                reader.MoveToAttribute(0);
+                                switch (reader.Name.ToUpperInvariant())
+                                {
+                                    case "FROM":
+                                        from = reader.Value;
+                                        break;
+                                    case "TO":
+                                        to = reader.Value;
+                                        break;
+                                }
+                                reader.MoveToAttribute(1);
+                                switch (reader.Name.ToUpperInvariant())
+                                {
+                                    case "FROM":
+                                        from = reader.Value;
+                                        break;
+                                    case "TO":
+                                        to = reader.Value;
+                                        break;
+                                }
+                                reader.MoveToElement();
+                            }
                             if (!string.IsNullOrEmpty(from) && to != null)
                             {
                                 var key = string.Format("{0}\0{1}", from, to);

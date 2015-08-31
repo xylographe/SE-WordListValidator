@@ -99,7 +99,7 @@ namespace SubtitleEditWordListValidator
                             }
                             element = null;
                         }
-                        if (reader.HasAttributes || reader.Name != ItemName)
+                        if (reader.HasAttributes || !reader.Name.Equals(ItemName, StringComparison.OrdinalIgnoreCase))
                         {
                             throw new Exception(string.Format("Invalid element <{0}…> in <{1}>", reader.Name, root.Name));
                         }
