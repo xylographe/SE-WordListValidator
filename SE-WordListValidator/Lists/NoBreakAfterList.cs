@@ -77,7 +77,7 @@ namespace SubtitleEditWordListValidator
                             {
                                 nmap[element].AddRange(comments);
                                 comments.Clear();
-                                _factory.Logger.Verbose(string.Format("Removed duplicate |{0}|", reader.Value));
+                                _factory.Verbose(reader, string.Format("Removed duplicate »{0}«", reader.Value));
                             }
                             else
                             {

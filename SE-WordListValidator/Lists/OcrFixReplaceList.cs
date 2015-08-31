@@ -187,7 +187,7 @@ namespace SubtitleEditWordListValidator
                                 if (list.Elements.ContainsKey(key))
                                 {
                                     item = list.Elements[key];
-                                    _factory.Logger.Verbose(string.Format("Removed duplicate |{0}| ==> |{1}|", find, repl));
+                                    _factory.Verbose(reader, string.Format("Removed duplicate »{0}« ==> »{1}«", find, repl));
                                 }
                                 else
                                 {
@@ -290,7 +290,7 @@ namespace SubtitleEditWordListValidator
                                 if (list.Elements.ContainsKey(key))
                                 {
                                     item = list.Elements[key];
-                                    _factory.Logger.Verbose(string.Format("Removed duplicate |{0}| ==> |{1}|", from, to));
+                                    _factory.Verbose(reader, string.Format("Removed duplicate »{0}« ==> »{1}«", from, to));
                                 }
                                 else
                                 {
@@ -385,7 +385,7 @@ namespace SubtitleEditWordListValidator
                         case 1: // $$
                             if ("0123456789{".IndexOf(c) >= 0)
                             {
-                                Warn(reader, string.Format("replaceWith=\"{0}\" - Perhaps you meant \"{1}${2}\"?", repl, sb.ToString(0, index), c));
+                                _factory.Warn(reader, string.Format("replaceWith=\"{0}\" - Perhaps you meant \"{1}${2}\"?", repl, sb.ToString(0, index), c));
                             }
                             index -= 1;
                             mode = 0;
@@ -407,13 +407,14 @@ namespace SubtitleEditWordListValidator
                                 case '\'':
                                 case '`':
                                 case '_':
-                                    Warn(reader, string.Format("replaceWith=\"{0}\" - Are you sure you want \"${1}\" in the replacement pattern?", repl, c));
+                                    _factory.Warn(reader, string.Format("replaceWith=\"{0}\" - Are you sure you want \"${1}\" in the replacement pattern?", repl, c));
                                     break;
                                 case '&':
                                 case '+':
                                     break;
                                 default:
                                     sb.Insert(index, '$');
+                                    _factory.Verbose(reader, string.Format("replaceWith=\"{0}\" - Missing '$' inserted: \"{1}\"", repl, sb.ToString(0, index + 1)));
                                     break;
                             }
                             break;
@@ -424,7 +425,7 @@ namespace SubtitleEditWordListValidator
                                 var group = sb.ToString(start, index - start);
                                 if (find.GroupNumberFromName(group) < 0)
                                 {
-                                    Warn(reader, string.Format("replaceWith=\"{0}\" - Group \"{1}\" is not defined in the regular expression pattern!", repl, group));
+                                    _factory.Warn(reader, string.Format("replaceWith=\"{0}\" - Group \"{1}\" is not defined in the regular expression pattern!", repl, group));
                                 }
                                 index -= 1;
                                 mode = 0;
@@ -434,7 +435,7 @@ namespace SubtitleEditWordListValidator
                             mode = 5;
                             if ("_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".IndexOf(c) < 0)
                             {
-                                Warn(reader, string.Format("replaceWith=\"{0}\" - Invalid group identifier \"{1}\"?", repl, sb.ToString(index - 2, 3)));
+                                _factory.Warn(reader, string.Format("replaceWith=\"{0}\" - Invalid group identifier \"{1}\"?", repl, sb.ToString(index - 2, 3)));
                                 index -= 1;
                                 mode = 0;
                             }
@@ -446,14 +447,14 @@ namespace SubtitleEditWordListValidator
                                 var group = sb.ToString(start, index - start);
                                 if (find.GroupNumberFromName(group) < 0)
                                 {
-                                    Warn(reader, string.Format("replaceWith=\"{0}\" - Group \"{1}\" is not defined in the regular expression pattern!", repl, group));
+                                    _factory.Warn(reader, string.Format("replaceWith=\"{0}\" - Group \"{1}\" is not defined in the regular expression pattern!", repl, group));
                                 }
                                 mode = 0;
                             }
                             else if ("_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".IndexOf(c) < 0)
                             {
                                 var start = sb.ToString(0, index).LastIndexOf('$');
-                                Warn(reader, string.Format("replaceWith=\"{0}\" - Invalid group identifier \"{1}\"?", repl, sb.ToString(start, index - start)));
+                                _factory.Warn(reader, string.Format("replaceWith=\"{0}\" - Invalid group identifier \"{1}\"?", repl, sb.ToString(start, index - start)));
                                 index -= 1;
                                 mode = 0;
                             }
@@ -461,14 +462,6 @@ namespace SubtitleEditWordListValidator
                     }
                 }
                 return sb.ToString(0, sb.Length - 1);
-            }
-
-            private void Warn(XmlReader reader, string msg)
-            {
-                var t = reader.GetType();
-                var ln = t.GetProperty("LineNumber").GetValue(reader);
-                var col = t.GetProperty("LinePosition").GetValue(reader);
-                _factory.Logger.Warn(string.Format("line {0} column {1}: {2}", ln, col, msg));
             }
 
         }

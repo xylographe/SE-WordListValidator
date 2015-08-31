@@ -120,5 +120,21 @@ namespace SubtitleEditWordListValidator
             WordLists.Clear();
         }
 
+        private void Verbose(XmlReader reader, string msg)
+        {
+            var t = reader.GetType();
+            var ln = t.GetProperty("LineNumber").GetValue(reader);
+            var col = t.GetProperty("LinePosition").GetValue(reader);
+            Logger.Verbose(string.Format("line {0} column {1}: {2}", ln, col, msg));
+        }
+
+        private void Warn(XmlReader reader, string msg)
+        {
+            var t = reader.GetType();
+            var ln = t.GetProperty("LineNumber").GetValue(reader);
+            var col = t.GetProperty("LinePosition").GetValue(reader);
+            Logger.Warn(string.Format("line {0} column {1}: {2}", ln, col, msg));
+        }
+
     }
 }
