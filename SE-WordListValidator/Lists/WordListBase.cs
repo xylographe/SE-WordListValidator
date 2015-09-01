@@ -42,10 +42,20 @@ namespace SubtitleEditWordListValidator
                 }
             }
 
+            private readonly bool _canFind;
+            public bool CanFind
+            {
+                get
+                {
+                    return _canFind;
+                }
+            }
+
             protected abstract void ValidateRoot(XmlDocument document, XmlReader reader);
 
-            public WordListBase(WordListFactory wlf, string path)
+            public WordListBase(WordListFactory wlf, string path, bool CanFind = false)
             {
+                _canFind = CanFind;
                 _originalFullName = Path.GetFullPath(path);
                 wlf.WordLists.Add(this);
                 _factory = wlf;
@@ -190,6 +200,27 @@ namespace SubtitleEditWordListValidator
                         log.Error(string.Format("Could not remove {0} working copy: {1}", Name, ex.Message));
                     }
                 }
+            }
+
+            public void Find(Form owner, string input)
+            {
+                if (CanFind && SetCurrent(owner))
+                {
+                    var document = new XmlDocument { XmlResolver = null };
+                    try
+                    {
+                        document.Load(_currentFullName);
+                        FindItems(document, input.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", Environment.NewLine));
+                    }
+                    catch (Exception ex)
+                    {
+                        _factory.Logger.Error(string.Format("{0} is not a valid XML document: {1}", Name, ex.Message));
+                    }
+                }
+            }
+
+            protected virtual void FindItems(XmlDocument document, string input)
+            {
             }
 
             internal void Close(Form owner)

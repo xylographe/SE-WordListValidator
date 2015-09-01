@@ -59,8 +59,25 @@ namespace SubtitleEditWordListValidator
             private Regex _regex;
 
             public OcrFixReplaceList(WordListFactory wlf, string path)
-                : base(wlf, path)
+                : base(wlf, path, CanFind: true)
             {
+            }
+
+            protected override void FindItems(XmlDocument document, string input)
+            {
+                foreach (XmlElement regex in document.DocumentElement.SelectNodes("RegularExpressions/RegEx"))
+                {
+                    var find = regex.Attributes["find"].Value;
+                    var repl = regex.Attributes["replaceWith"].Value;
+                    if (!string.IsNullOrEmpty(find) && repl != null)
+                    {
+                        var result = Regex.Replace(input, find, repl, (RegexOptions.CultureInvariant | RegexOptions.Multiline));
+                        if (result != input)
+                        {
+                            _factory.Logger.Info(string.Format("{1}{0}\t{2}{0} ==>\t{3}", Environment.NewLine, regex.OuterXml, input.Replace(Environment.NewLine, "<br />"), result.Replace(Environment.NewLine, "<br />")));
+                        }
+                    }
+                }
             }
 
             protected override void ValidateRoot(XmlDocument document, XmlReader reader)

@@ -30,12 +30,14 @@ namespace SubtitleEditWordListValidator
     public interface WordList
     {
         string Name { get; }
+        bool CanFind { get; }
 
         void Validate(Form owner);
         void Edit(Form owner);
         void Submit(Form owner);
         void Accept(Form owner);
         void Reject(Form owner);
+        void Find(Form owner, string text);
     }
 
     public static class StringExtensions
