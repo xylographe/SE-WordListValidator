@@ -72,6 +72,7 @@ namespace SubtitleEditWordListValidator
 
                 toolStripMenuItemDictionary.ToolTipText = string.Empty;
                 treeViewWordLists.Nodes[0].Nodes.Clear();
+                panelFind.Visible = false;
                 foreach (var path in Directory.EnumerateFiles(dictdir, "*_OCRFixReplaceList.xml"))
                 {
                     var wl = _wlf.CreateOcrFixReplaceList(path);
@@ -163,14 +164,29 @@ namespace SubtitleEditWordListValidator
             _wlf.Close(this);
         }
 
+        private void TextBoxTerminal_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            ToolStripMenuItemWordListsEdit_Click(null, null);
+        }
+
         private void TreeViewWordLists_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             ToolStripMenuItemWordListsValidate_Click(null, null);
         }
 
-        private void TextBoxTerminal_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void TreeViewWordLists_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            ToolStripMenuItemWordListsEdit_Click(null, null);
+            var node = treeViewWordLists.SelectedNode;
+            if (node != null)
+            {
+                var wl = node.Tag as WordList;
+                if (wl != null)
+                {
+                    panelFind.Visible = wl.CanFind;
+                    return;
+                }
+            }
+            panelFind.Visible = false;
         }
 
         private void ToolStripMenuItemWordListsValidate_Click(object sender, EventArgs e)
@@ -182,6 +198,7 @@ namespace SubtitleEditWordListValidator
                 if (wl != null)
                 {
                     wl.Validate(this);
+                    treeViewWordLists.Select();
                 }
             }
         }
@@ -195,6 +212,7 @@ namespace SubtitleEditWordListValidator
                 if (wl != null)
                 {
                     wl.Edit(this);
+                    treeViewWordLists.Select();
                 }
             }
         }
@@ -208,6 +226,7 @@ namespace SubtitleEditWordListValidator
                 if (wl != null)
                 {
                     wl.Submit(this);
+                    treeViewWordLists.Select();
                 }
             }
         }
@@ -221,6 +240,7 @@ namespace SubtitleEditWordListValidator
                 if (wl != null)
                 {
                     wl.Accept(this);
+                    treeViewWordLists.Select();
                 }
             }
         }
@@ -234,8 +254,40 @@ namespace SubtitleEditWordListValidator
                 if (wl != null)
                 {
                     wl.Reject(this);
+                    treeViewWordLists.Select();
                 }
             }
+        }
+
+        private void ButtonFindGo_Click(object sender, EventArgs e)
+        {
+            if (textBoxFind.Text.Length > 0)
+            {
+                var node = treeViewWordLists.SelectedNode;
+                if (node != null)
+                {
+                    var wl = node.Tag as WordList;
+                    if (wl != null)
+                    {
+                        wl.Find(this, textBoxFind.Text);
+                        treeViewWordLists.Select();
+                    }
+                }
+            }
+            else
+            {
+                textBoxFind.Select();
+            }
+        }
+
+        private void ButtonFindClear_Click(object sender, EventArgs e)
+        {
+            if (textBoxFind.Text.Length > 0)
+            {
+                textBoxFind.SelectAll();
+                textBoxFind.Paste(string.Empty);
+            }
+            textBoxFind.Select();
         }
 
     }

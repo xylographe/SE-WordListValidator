@@ -63,12 +63,17 @@ namespace SubtitleEditWordListValidator
             this.toolStripMenuItemWordListsSubmit = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemWordListsAcceopt = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemWordListsReject = new System.Windows.Forms.ToolStripMenuItem();
+            this.panelFind = new System.Windows.Forms.Panel();
+            this.textBoxFind = new System.Windows.Forms.TextBox();
+            this.buttonFindClear = new System.Windows.Forms.Button();
+            this.buttonFindGo = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).BeginInit();
             this.splitContainerMain.Panel1.SuspendLayout();
             this.splitContainerMain.Panel2.SuspendLayout();
             this.splitContainerMain.SuspendLayout();
             this.contextMenuStripWordLists.SuspendLayout();
             this.menuStripWordLists.SuspendLayout();
+            this.panelFind.SuspendLayout();
             this.SuspendLayout();
             //
             // splitContainerMain
@@ -87,6 +92,7 @@ namespace SubtitleEditWordListValidator
             // splitContainerMain.Panel2
             //
             this.splitContainerMain.Panel2.Controls.Add(this.textBoxTerminal);
+            this.splitContainerMain.Panel2.Controls.Add(this.panelFind);
             this.splitContainerMain.Panel2MinSize = 333;
             this.splitContainerMain.Size = new System.Drawing.Size(800, 600);
             this.splitContainerMain.SplitterDistance = 181;
@@ -108,7 +114,6 @@ namespace SubtitleEditWordListValidator
             //
             // toolStripMenuItemDictionary
             //
-            this.toolStripMenuItemDictionary.AutoToolTip = false;
             this.toolStripMenuItemDictionary.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItemDictionaryFolder});
             this.toolStripMenuItemDictionary.Name = "toolStripMenuItemDictionary";
@@ -117,7 +122,6 @@ namespace SubtitleEditWordListValidator
             //
             // toolStripMenuItemDictionaryFolder
             //
-            this.toolStripMenuItemDictionary.AutoToolTip = false;
             this.toolStripMenuItemDictionaryFolder.Name = "toolStripMenuItemDictionaryFolder";
             this.toolStripMenuItemDictionaryFolder.Size = new System.Drawing.Size(152, 22);
             this.toolStripMenuItemDictionaryFolder.Text = "Change &folder";
@@ -126,6 +130,7 @@ namespace SubtitleEditWordListValidator
             // treeViewWordLists
             //
             this.treeViewWordLists.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeViewWordLists.HideSelection = false;
             this.treeViewWordLists.ItemHeight = 20;
             this.treeViewWordLists.Location = new System.Drawing.Point(0, 24);
             this.treeViewWordLists.Name = "treeViewWordLists";
@@ -144,20 +149,32 @@ namespace SubtitleEditWordListValidator
             treeNode4});
             this.treeViewWordLists.Size = new System.Drawing.Size(181, 576);
             this.treeViewWordLists.TabIndex = 1;
+            this.treeViewWordLists.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.TreeViewWordLists_AfterSelect);
             this.treeViewWordLists.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.TreeViewWordLists_NodeMouseDoubleClick);
             //
             // textBoxTerminal
             //
             this.textBoxTerminal.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBoxTerminal.Location = new System.Drawing.Point(0, 0);
+            this.textBoxTerminal.Location = new System.Drawing.Point(0, 48);
             this.textBoxTerminal.Multiline = true;
             this.textBoxTerminal.Name = "textBoxTerminal";
             this.textBoxTerminal.ReadOnly = true;
             this.textBoxTerminal.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBoxTerminal.Size = new System.Drawing.Size(616, 600);
-            this.textBoxTerminal.TabIndex = 0;
+            this.textBoxTerminal.Size = new System.Drawing.Size(616, 552);
+            this.textBoxTerminal.TabIndex = 1;
             this.textBoxTerminal.WordWrap = false;
             this.textBoxTerminal.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.TextBoxTerminal_MouseDoubleClick);
+            //
+            // panelFind
+            //
+            this.panelFind.Controls.Add(this.textBoxFind);
+            this.panelFind.Controls.Add(this.buttonFindClear);
+            this.panelFind.Controls.Add(this.buttonFindGo);
+            this.panelFind.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelFind.Location = new System.Drawing.Point(0, 0);
+            this.panelFind.Name = "panelFind";
+            this.panelFind.Size = new System.Drawing.Size(616, 48);
+            this.panelFind.TabIndex = 0;
             //
             // contextMenuStripWordLists
             //
@@ -206,6 +223,48 @@ namespace SubtitleEditWordListValidator
             this.toolStripMenuItemWordListsReject.Text = "Reject";
             this.toolStripMenuItemWordListsReject.Click += new System.EventHandler(this.ToolStripMenuItemWordListsReject_Click);
             //
+            // textBoxFind
+            //
+            this.textBoxFind.AcceptsReturn = true;
+            this.textBoxFind.AcceptsTab = true;
+            this.textBoxFind.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.textBoxFind.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.textBoxFind.Location = new System.Drawing.Point(0, 0);
+            this.textBoxFind.Multiline = true;
+            this.textBoxFind.Name = "textBoxFind";
+            this.textBoxFind.Size = new System.Drawing.Size(556, 48);
+            this.textBoxFind.TabIndex = 0;
+            //
+            // buttonFindClear
+            //
+            this.buttonFindClear.Dock = System.Windows.Forms.DockStyle.Right;
+            this.buttonFindClear.Font = new System.Drawing.Font("Wingdings", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(2)));
+            this.buttonFindClear.ForeColor = System.Drawing.Color.Red;
+            this.buttonFindClear.Location = new System.Drawing.Point(556, 0);
+            this.buttonFindClear.Name = "buttonFindClear";
+            this.buttonFindClear.Padding = new System.Windows.Forms.Padding(2, 0, 0, 0);
+            this.buttonFindClear.Size = new System.Drawing.Size(30, 48);
+            this.buttonFindClear.TabIndex = 1;
+            this.buttonFindClear.Text = "\uF078";
+            this.buttonFindClear.UseMnemonic = false;
+            this.buttonFindClear.UseVisualStyleBackColor = true;
+            this.buttonFindClear.Click += new System.EventHandler(this.ButtonFindClear_Click);
+            //
+            // buttonFindGo
+            //
+            this.buttonFindGo.Dock = System.Windows.Forms.DockStyle.Right;
+            this.buttonFindGo.Font = new System.Drawing.Font("Wingdings", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(2)));
+            this.buttonFindGo.ForeColor = System.Drawing.Color.DarkOliveGreen;
+            this.buttonFindGo.Location = new System.Drawing.Point(586, 0);
+            this.buttonFindGo.Name = "buttonFindGo";
+            this.buttonFindGo.Padding = new System.Windows.Forms.Padding(2, 0, 0, 0);
+            this.buttonFindGo.Size = new System.Drawing.Size(30, 48);
+            this.buttonFindGo.TabIndex = 2;
+            this.buttonFindGo.Text = "\uF0F0";
+            this.buttonFindGo.UseMnemonic = false;
+            this.buttonFindGo.UseVisualStyleBackColor = true;
+            this.buttonFindGo.Click += new System.EventHandler(this.ButtonFindGo_Click);
+            //
             // Main
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -227,6 +286,8 @@ namespace SubtitleEditWordListValidator
             this.contextMenuStripWordLists.ResumeLayout(false);
             this.menuStripWordLists.ResumeLayout(false);
             this.menuStripWordLists.PerformLayout();
+            this.panelFind.ResumeLayout(false);
+            this.panelFind.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -245,5 +306,9 @@ namespace SubtitleEditWordListValidator
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemWordListsSubmit;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemWordListsAcceopt;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemWordListsReject;
+        private System.Windows.Forms.Panel panelFind;
+        private System.Windows.Forms.TextBox textBoxFind;
+        private System.Windows.Forms.Button buttonFindClear;
+        private System.Windows.Forms.Button buttonFindGo;
     }
 }
