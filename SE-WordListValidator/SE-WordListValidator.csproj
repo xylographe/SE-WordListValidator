@@ -83,7 +83,7 @@
     <Compile Include="Lists\WordListNoAttributes.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Settings.cs" />
+    <Compile Include="Properties\Settings.cs" />
     <Compile Include="Forms\Main.cs">
       <SubType>Form</SubType>
     </Compile>
