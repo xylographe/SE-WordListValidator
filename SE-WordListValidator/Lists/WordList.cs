@@ -53,6 +53,11 @@ namespace SubtitleEditWordListValidator
         {
             return WhiteSpaceRegex.Replace(source, replacement);
         }
+
+        public static string NormalizeNewLine(this string source)
+        {
+            return source.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", Environment.NewLine);
+        }
     }
 
     public sealed partial class WordListFactory

@@ -38,28 +38,28 @@ namespace SubtitleEditWordListValidator
         public void Verbose(string text)
         {
             _out.AppendText(pVerbose);
-            _out.AppendText(text);
+            _out.AppendText(text.NormalizeNewLine());
             _out.AppendText(Environment.NewLine);
         }
 
         public void Error(string text)
         {
             _out.AppendText(pError);
-            _out.AppendText(text);
+            _out.AppendText(text.NormalizeNewLine());
             _out.AppendText(Environment.NewLine);
         }
 
         public void Warn(string text)
         {
             _out.AppendText(pWarn);
-            _out.AppendText(text);
+            _out.AppendText(text.NormalizeNewLine());
             _out.AppendText(Environment.NewLine);
         }
 
         public void Info(string text)
         {
             _out.AppendText(pInfo);
-            _out.AppendText(text);
+            _out.AppendText(text.NormalizeNewLine());
             _out.AppendText(Environment.NewLine);
         }
 

@@ -210,7 +210,7 @@ namespace SubtitleEditWordListValidator
                     try
                     {
                         document.Load(_currentFullName);
-                        FindItems(document, input.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", Environment.NewLine));
+                        FindItems(document, input.NormalizeNewLine());
                     }
                     catch (Exception ex)
                     {

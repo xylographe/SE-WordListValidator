@@ -74,7 +74,7 @@ namespace SubtitleEditWordListValidator
                         var result = Regex.Replace(input, find, repl, (RegexOptions.CultureInvariant | RegexOptions.Multiline));
                         if (result != input)
                         {
-                            _factory.Logger.Info(string.Format("{1}{0}\t{2}{0} ==>\t{3}", Environment.NewLine, regex.OuterXml, input.Replace(Environment.NewLine, "<br />"), result.Replace(Environment.NewLine, "<br />")));
+                            _factory.Logger.Info(string.Format("{0}\n\t{1}\n ==>\t{2}", regex.OuterXml, input.Replace(Environment.NewLine, "<br />"), result.Replace(Environment.NewLine, "<br />")));
                         }
                     }
                 }
