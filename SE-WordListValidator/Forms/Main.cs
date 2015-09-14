@@ -259,6 +259,49 @@ namespace SubtitleEditWordListValidator
             }
         }
 
+        private void TextBoxFind_KeyDown(object sender, KeyEventArgs e)
+        {
+            var tb = sender as TextBox;
+
+            if (e.Modifiers == Keys.Control)
+            {
+                switch (e.KeyCode)
+                {
+                    case Keys.A:
+                        tb.SelectAll();
+                        e.SuppressKeyPress = true;
+                        break;
+                    case Keys.Back:
+                        if (tb.SelectionLength == 0)
+                        {
+                            var breakChars = " \t\r\n\"'.?!,;:{}()[]<>-/#*|¿¡♪♫";
+                            var index = tb.SelectionStart;
+                            var deleteFrom = index - 1;
+                            var s = tb.Text;
+                            if (deleteFrom > 0 && deleteFrom < s.Length)
+                            {
+                                if (s[deleteFrom] == ' ' || s[deleteFrom] == '\t')
+                                    deleteFrom--;
+                                while (deleteFrom > 0 && breakChars.IndexOf(s[deleteFrom]) < 0)
+                                    deleteFrom--;
+                                if (deleteFrom == index - 1)
+                                {
+                                    breakChars = breakChars.Substring(2);
+                                    while (deleteFrom > 0 && breakChars.IndexOf(s[deleteFrom - 1]) >= 0)
+                                        deleteFrom--;
+                                }
+                                if (s[deleteFrom] == ' ' || s[deleteFrom] == '\t')
+                                    deleteFrom++;
+                                tb.Select(deleteFrom, index - deleteFrom);
+                                tb.Paste(string.Empty);
+                            }
+                        }
+                        e.SuppressKeyPress = true;
+                        break;
+                }
+            }
+        }
+
         private void ButtonFindGo_Click(object sender, EventArgs e)
         {
             if (textBoxFind.Text.Length > 0)

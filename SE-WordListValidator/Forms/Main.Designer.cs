@@ -234,6 +234,7 @@ namespace SubtitleEditWordListValidator
             this.textBoxFind.Name = "textBoxFind";
             this.textBoxFind.Size = new System.Drawing.Size(556, 48);
             this.textBoxFind.TabIndex = 0;
+            this.textBoxFind.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TextBoxFind_KeyDown);
             //
             // buttonFindClear
             //
