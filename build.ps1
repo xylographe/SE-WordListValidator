@@ -22,6 +22,7 @@ param (
 	[switch]$Upkeep,
 	[switch]$Verbose,
 	[switch]$Archive,
+	[switch]$Release,
 	[switch]$UpdateAssemblyInfo
 )
 $ErrorActionPreference = 'stop'; $Error.Clear(); $Error.Capacity = 16
@@ -204,8 +205,84 @@ function Upkeep {
 		$sha512.Dispose()
 	}
 }
+function Increase-Version {
+	function Get-NewVersion($version) {
+		add-type -assemblyname System.Windows.Forms, System.Drawing
+		$dialog = $labelCurrent = $textCurrent = $labelNew = $textNew = $buttonCancel = $buttonOK = $null
+		$tabIndex = 0
+		try {
+			$labelCurrent = new-object -type System.Windows.Forms.Label -property @{
+				UseCompatibleTextRendering = $false
+				TabIndex = $tabIndex++
+				Text = 'Current version'
+			}
+			$textCurrent = new-object -type System.Windows.Forms.TextBox -property @{
+				ReadOnly = $true
+				TabStop = $false
+				TabIndex = $tabIndex++
+				Text = $version
+			}
+			$labelNew = new-object -type System.Windows.Forms.Label -property @{
+				UseCompatibleTextRendering = $false
+				TabIndex = $tabIndex++
+				Text = 'New version'
+			}
+			$textNew = new-object -type System.Windows.Forms.TextBox -property @{
+				TabIndex = $tabIndex++
+				Text = $version
+			}
+			$buttonOK = new-object -type System.Windows.Forms.Button -property @{
+				UseCompatibleTextRendering = $false
+				UseVisualStyleBackColor = $true
+				TabIndex		= $tabIndex++
+				Text			= '&OK'
+				DialogResult	= 'OK'
+			}
+			$buttonCancel = new-object -type System.Windows.Forms.Button -property @{
+				UseCompatibleTextRendering = $false
+				UseVisualStyleBackColor = $true
+				TabIndex		= $tabIndex++
+				Text			= '&Cancel'
+				DialogResult	= 'Cancel'
+			}
+			$dialog = new-object -type System.Windows.Forms.Form -property @{
+				Text			= 'New SE-WordListValidator Release'
+				FormBorderStyle	= 'FixedDialog'
+				MaximizeBox		= $false
+				MinimizeBox		= $false
+				ShowInTaskBar	= $true
+				StartPosition	= 'CenterScreen'
+			}
+			$dM = 16
+			$textCurrent.Top = $dM; $labelCurrent.Top = $textCurrent.Top + 4
+			$labelCurrent.Left = $dM; $textCurrent.Left = $labelCurrent.Right + $dM
+			$textNew.Top = $textCurrent.Bottom + $textCurrent.Height; $labelNew.Top = $textNew.Top + 4
+			$labelNew.Left = $labelCurrent.Right - $labelNew.Width; $textNew.Left = $textCurrent.Left
+			$buttonCancel.Top = $buttonOK.Top = $textNew.Bottom + $textNew.Height + $dM
+			$buttonCancel.Left = $textNew.Right + 2 * $dM - $buttonCancel.Width
+			$buttonOK.Left = $buttonCancel.Left - $buttonOK.Width - 2 * $dM
+			$dialog.ClientSize = new-object -type System.Drawing.Size -args ($buttonCancel.Right + $dM), ($buttonCancel.Bottom + $dM)
+			$dialog.CancelButton = $buttonCancel
+			$dialog.AcceptButton = $buttonOK
+			$dialog.Controls.AddRange(@($labelCurrent, $textCurrent, $labelNew, $textNew, $buttonOK, $buttonCancel))
+			$dialog.add_Shown({$this.Activate()})
+			if ($dialog.ShowDialog() -ceq 'OK' -and ($v = $textNew.Text.Trim()) -cmatch '\A[0-9]+\.[0-9]+\.[0-9]+\z') { $v } else { $version }
+		} finally {
+			$dialog, $labelCurrent, $textCurrent, $labelNew, $textNew, $buttonCancel, $buttonOK | foreach-object { if ($_) { $_.Dispose() } }
+		}
+	}
+	$pattern = '^([ \t]*\[assembly:[ \t]*AssemblyVersion\(")([0-9]+\.[0-9]+\.[0-9]+)(\.\[REVNO\]"\)\])'
+	$file = get-item -literalpath SE-WordListValidator\Properties\AssemblyInfo.template.cs
+	$currentVersion = (select-string -pattern $pattern -literalpath $file -casesensitive).Matches[0].Groups[2].Value
+	$newVersion = Get-NewVersion $currentVersion
+	if ($newVersion -cne $currentVersion) {
+		(get-content -encoding UTF8 -literalpath $file) -creplace $pattern, "`${1}${newVersion}`${3}" | set-content -encoding UTF8 -literalpath $file
+		git commit -am $newVersion 2>&1
+		git tag $newVersion 2>&1
+	}
+}
 function Create-Archive {
-	$version = (select-string '^\[assembly: AssemblyVersion\("([^"]+)"\)\]' SE-WordListValidator\Properties\AssemblyInfo.cs).Matches[0].Groups[1].Value
+	$version = (get-item -literalpath SE-WordListValidator\bin\Release\SE-WordListValidator.exe).VersionInfo.ProductVersion
 	do { $guid = [System.Guid]::NewGuid() } while ($guid.Equals([System.Guid]::Empty))
 	$zipfolder = $zipfile = $null
 	try {
@@ -232,8 +309,8 @@ try {
 		$revno = '0'
 		try {
 			$githash = git rev-parse --verify HEAD 2>&1
-			$revno = git describe --tags 2>&1
-			$revno = "$(1 + "${revno}-0".Split('-')[1])"
+			$revno = git describe --long --tags 2>&1
+			$revno = "$(1 + "${revno}".Split('-')[1])"
 		} catch {
 			$Host.UI.WriteWarningLine($_.Exception.Message)
 		}
@@ -243,8 +320,15 @@ try {
 	}
 #	get-process -erroraction:SilentlyContinue -processname MSBuild | stop-process
 	get-childitem -force -recurse -include TestResults, Release, Debug, *.7z | remove-item -force -recurse
+	if ($Release) {
+		$null = git checkout master 2>&1
+		$Archive = $Upkeep = $Build = $true
+	}
 	if ($Upkeep -or (!$Clean -and !$Build)) {
 		Upkeep
+	}
+	if ($Release) {
+		Increase-Version
 	}
 	if ($Build -or (!$Upkeep -and !$Clean)) {
 		if ($MSBuildPath) {
@@ -253,7 +337,9 @@ try {
 			MSBuild SE-WordListValidator\SE-WordListValidator.sln /m /v:minimal /t:Rebuild /p:"Configuration=Release;Platform=Any CPU"
 		}
 	}
-	if ($Archive) { Create-Archive }
+	if ($Archive) {
+		Create-Archive
+	}
 } finally {
 	pop-location
 }
