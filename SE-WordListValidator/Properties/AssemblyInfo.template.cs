@@ -10,8 +10,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("xvzo")]
 [assembly: AssemblyProduct("SE-WordListValidator")]
-[assembly: AssemblyCopyright("Copyright © 2015 Waldi Ravens")]
-[assembly: AssemblyTrademark("GNU General Public License v3")]
+[assembly: AssemblyCopyright("2015  Waldi Ravens")]
+[assembly: AssemblyTrademark("GNU GPLv3 licensed")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
