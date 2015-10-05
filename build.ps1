@@ -27,12 +27,6 @@ param (
 )
 $ErrorActionPreference = 'stop'; $Error.Clear(); $Error.Capacity = 16
 $TopLevelDirectoryName = (get-item -force -literalpath $myInvocation.myCommand.Path).DirectoryName
-$MSBuildPath = $null
-try {
-	$null = get-command -name MSBuild
-} catch {
-	$MSBuildPath = "$(join-path (split-path -literalpath ([object].Assembly.Location)) MSBuild.exe)"
-}
 
 function Upkeep {
 	filter XmlShortTagElements {
@@ -138,7 +132,7 @@ function Upkeep {
 			return $file
 		}
 		$expand = '.ps1', '.sln' -notcontains $file.Extension
-		$text =  ($text.Split($lf) | foreach-object {
+		$text = ($text.Split($lf) | foreach-object {
 			$line = $_.TrimEnd()
 			if ($expand -and $line.IndexOf($tab) -ge 0) {
 				for ($textLine.Length = $i = 0; $i -lt $line.Length; $i++) {
@@ -302,6 +296,14 @@ function Create-Archive {
 		if ($zipfile) { $zipfile.Delete() }
 	}
 }
+function Invoke-MSBuild {
+	$vsct = try { (get-item -path env:\VS???COMNTOOLS | sort-object -property Name)[-1].Value } catch { $null }
+	if ($vsct) {
+		cmd.exe /C "CALL ""${vsct}vsvars32.bat"" & MSBuild.exe ""$($args -join '" "')"""
+	} else {
+		&"$(join-path (split-path -literalpath ([object].Assembly.Location)) MSBuild.exe)" @args
+	}
+}
 push-location -literalpath $TopLevelDirectoryName
 try {
 	if ($UpdateAssemblyInfo) {
@@ -331,11 +333,7 @@ try {
 		Increase-Version
 	}
 	if ($Build -or (!$Upkeep -and !$Clean)) {
-		if ($MSBuildPath) {
-			&$MSBuildPath SE-WordListValidator\SE-WordListValidator.sln /m /v:minimal /t:Rebuild /p:"Configuration=Release;Platform=Any CPU"
-		} else {
-			MSBuild SE-WordListValidator\SE-WordListValidator.sln /m /v:minimal /t:Rebuild /p:"Configuration=Release;Platform=Any CPU"
-		}
+		Invoke-MSBuild SE-WordListValidator\SE-WordListValidator.sln /m /v:minimal /t:Rebuild /p:"Configuration=Release;Platform=Any CPU"
 	}
 	if ($Archive) {
 		Create-Archive
