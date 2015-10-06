@@ -17,6 +17,7 @@
     with SE-WordListValidator.  If not, see <http://www.gnu.org/licenses/>.
 */
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
@@ -26,10 +27,11 @@ namespace SubtitleEditWordListValidator
     {
         private delegate bool StringEquals(string a, string b);
 
-        private readonly StringEquals EqualPathNames;
+        private readonly StringEquals FileNameEquals;
         private readonly WordListFactory _wlf;
         private readonly Logger _log;
-        private string _dictdir;
+        private Settings _settings;
+        private string _wordListFolder;
 
         public Main()
         {
@@ -41,7 +43,7 @@ namespace SubtitleEditWordListValidator
 
             var osPlatform = (int)Environment.OSVersion.Platform;
             var isLikeWindows = !(osPlatform == 4 || osPlatform == 6 || osPlatform == 128);
-            EqualPathNames = isLikeWindows ? new StringEquals(StringEqualsOrdinalIgnoreCase) : new StringEquals(StringEqualsOrdinal);
+            FileNameEquals = isLikeWindows ? new StringEquals(StringEqualsOrdinalIgnoreCase) : new StringEquals(StringEqualsOrdinal);
         }
 
         private bool StringEqualsOrdinalIgnoreCase(string a, string b)
@@ -56,50 +58,104 @@ namespace SubtitleEditWordListValidator
 
         private void Main_Load(object sender, EventArgs e)
         {
+            _settings = Configuration.Settings;
+            var recentFolders = _settings.RecentFolders;
+            var maxCount = toolStripMenuItemFileRecentFolders.DropDownItems.Count;
+            while (recentFolders.Count > maxCount)
+                recentFolders.RemoveAt(0);
+            recentFolders.Capacity = maxCount;
+
+            toolStripMenuItemFile.ToolTipText = "Subtitle Edit “Dictionaries” folder not found";
             InitializeWordListView(GetDictionaryPath());
         }
 
-        private void ToolStripMenuItemDictionaryFolder_Click(object sender, EventArgs e)
+        private void MenuStripWordLists_MenuActivate(object sender, EventArgs e)
+        {
+            var recentFolders = _settings.RecentFolders;
+            int index = recentFolders.Count - 1;
+            if ((toolStripMenuItemFileRecentFolders.Visible = index > 0))
+            {
+                foreach (ToolStripMenuItem item in toolStripMenuItemFileRecentFolders.DropDownItems)
+                {
+                    if ((item.Visible = --index >= 0))
+                    {
+                        item.Text = recentFolders[index];
+                        item.Enabled = true;
+                    }
+                }
+            }
+        }
+
+        private void ToolStripMenuItemFileRecentFolders_Click(object sender, EventArgs e)
+        {
+            var item = sender as ToolStripMenuItem;
+            var path = item.Text;
+
+            if (Directory.Exists(path))
+            {
+                InitializeWordListView(path);
+            }
+            else
+            {
+                item.Enabled = false;
+                var recentFolders = _settings.RecentFolders;
+                recentFolders.RemoveAt(recentFolders.FindIndex(fn => FileNameEquals(path, fn)));
+            }
+        }
+
+        private void ToolStripMenuItemFileChangeFolder_Click(object sender, EventArgs e)
         {
             InitializeWordListView(UserDictionaryPath());
         }
 
-        private void InitializeWordListView(string dictdir)
+        private void InitializeWordListView(string wordListFolder)
         {
-            if (dictdir != null && !EqualPathNames(dictdir, _dictdir))
+            if (wordListFolder != null && !FileNameEquals(wordListFolder, _wordListFolder))
             {
                 _wlf.Close(this);
 
-                toolStripMenuItemDictionary.ToolTipText = string.Empty;
+                toolStripMenuItemFile.ToolTipText = string.Empty;
                 treeViewWordLists.Nodes[0].Nodes.Clear();
                 panelFind.Visible = false;
-                foreach (var path in Directory.EnumerateFiles(dictdir, "*_OCRFixReplaceList.xml"))
+                foreach (var path in Directory.EnumerateFiles(wordListFolder, "*_OCRFixReplaceList.xml"))
                 {
                     var wl = _wlf.CreateOcrFixReplaceList(path);
                     treeViewWordLists.Nodes[0].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
                 treeViewWordLists.Nodes[1].Nodes.Clear();
-                foreach (var path in Directory.EnumerateFiles(dictdir, "*_NoBreakAfterList.xml"))
+                foreach (var path in Directory.EnumerateFiles(wordListFolder, "*_NoBreakAfterList.xml"))
                 {
                     var wl = _wlf.CreateNoBreakAfterList(path);
                     treeViewWordLists.Nodes[1].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
                 treeViewWordLists.Nodes[2].Nodes.Clear();
-                foreach (var path in Directory.EnumerateFiles(dictdir, "*names_etc.xml"))
+                foreach (var path in Directory.EnumerateFiles(wordListFolder, "*names_etc.xml"))
                 {
                     var wl = _wlf.CreateNamesEtcList(path);
                     treeViewWordLists.Nodes[2].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
                 treeViewWordLists.Nodes[3].Nodes.Clear();
-                foreach (var path in Directory.EnumerateFiles(dictdir, "??_??_user.xml"))
+                foreach (var path in Directory.EnumerateFiles(wordListFolder, "??_??_user.xml"))
                 {
                     var wl = _wlf.CreateUserList(path);
                     treeViewWordLists.Nodes[3].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
-                toolStripMenuItemDictionary.ToolTipText = dictdir;
+                toolStripMenuItemFile.ToolTipText = wordListFolder;
 
-                _dictdir = dictdir;
+                UpdateRecentFolders(wordListFolder);
+                _wordListFolder = wordListFolder;
             }
+        }
+
+        private void UpdateRecentFolders(string path)
+        {
+            var recentFolders = _settings.RecentFolders;
+            var index = recentFolders.FindIndex(fn => FileNameEquals(path, fn));
+            if (index >= 0)
+                recentFolders.RemoveAt(index);
+            else if (recentFolders.Count == recentFolders.Capacity)
+                recentFolders.RemoveAt(0);
+            recentFolders.Add(path);
         }
 
         private string GetDictionaryPath()
@@ -133,16 +189,26 @@ namespace SubtitleEditWordListValidator
             {
             }
 
+            var recentFolders = _settings.RecentFolders;
+            var index = recentFolders.Count - 1;
+            if (index >= 0)
+            {
+                var path = recentFolders[index];
+                if (Directory.Exists(path))
+                {
+                    return UserDictionaryPath(path);
+                }
+            }
             return UserDictionaryPath();
         }
 
-        private string UserDictionaryPath()
+        private string UserDictionaryPath(string startPath = null)
         {
-            using (var fbd = new FolderBrowserDialog { Description = "Select dictionary folder", ShowNewFolderButton = false })
+            using (var fbd = new FolderBrowserDialog { Description = "Select Subtitle Edit “Dictionaries” folder", ShowNewFolderButton = false })
             {
                 try
                 {
-                    fbd.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                    fbd.SelectedPath = startPath ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                 }
                 catch
                 {
@@ -161,6 +227,7 @@ namespace SubtitleEditWordListValidator
 
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
+            _settings.Save();
             _wlf.Close(this);
         }
 
