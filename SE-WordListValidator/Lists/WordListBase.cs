@@ -28,6 +28,7 @@ namespace SubtitleEditWordListValidator
     {
         private abstract class WordListBase : WordList
         {
+            protected readonly XmlWriterSettings _xmlWriterSettings;
             protected readonly WordListFactory _factory;
             private readonly string _originalFullName;
             private string _currentFullName;
@@ -57,6 +58,7 @@ namespace SubtitleEditWordListValidator
             {
                 _canFind = CanFind;
                 _originalFullName = Path.GetFullPath(path);
+                _xmlWriterSettings = new XmlWriterSettings { CloseOutput = true, Encoding = wlf.XmlEncoding, Indent = true, OmitXmlDeclaration = true };
                 wlf.WordLists.Add(this);
                 _factory = wlf;
             }
@@ -85,7 +87,7 @@ namespace SubtitleEditWordListValidator
                                 throw new Exception(string.Format("line {0} column {1}: {2}", ln, col, ex.Message));
                             }
                         }
-                        using (var writer = XmlWriter.Create(_currentFullName, _factory.XmlWriterSettings))
+                        using (var writer = XmlWriter.Create(_currentFullName, _xmlWriterSettings))
                         {
                             document.Save(writer);
                         }

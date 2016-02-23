@@ -150,6 +150,7 @@ namespace SubtitleEditWordListValidator
                     }
                     else if (reader.Depth == 0 && reader.NodeType == XmlNodeType.XmlDeclaration)
                     {
+                        _xmlWriterSettings.OmitXmlDeclaration = false;
                     }
                     else if (reader.Depth == 0 && reader.NodeType == XmlNodeType.EndElement)
                     {

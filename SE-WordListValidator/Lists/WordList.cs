@@ -65,7 +65,6 @@ namespace SubtitleEditWordListValidator
         private const string GitHub = "https://github.com/SubtitleEdit/subtitleedit/edit/master/Dictionaries/";
         private readonly List<WordListBase> WordLists = new List<WordListBase>();
         private readonly HashAlgorithm SHA512 = HashAlgorithm.Create("SHA512");
-        private readonly XmlWriterSettings XmlWriterSettings;
         private readonly XmlReaderSettings XmlReaderSettings;
         private readonly UTF8Encoding XmlEncoding;
         private readonly Logger Logger;
@@ -95,7 +94,6 @@ namespace SubtitleEditWordListValidator
             Logger = logger;
             XmlEncoding = new UTF8Encoding(true, true);
             XmlReaderSettings = new XmlReaderSettings { CloseInput = true, XmlResolver = null };
-            XmlWriterSettings = new XmlWriterSettings { CloseOutput = true, Encoding = XmlEncoding, Indent = true, OmitXmlDeclaration = true };
         }
 
         public WordList CreateOcrFixReplaceList(string path)
