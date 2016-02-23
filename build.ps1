@@ -323,7 +323,7 @@ try {
 #	get-process -erroraction:SilentlyContinue -processname MSBuild | stop-process
 	get-childitem -force -recurse -include TestResults, Release, Debug, *.7z | remove-item -force -recurse
 	if ($Release) {
-		$null = git checkout master 2>&1
+		$null = git checkout master
 		$Archive = $Upkeep = $Build = $true
 	}
 	if ($Upkeep -or (!$Clean -and !$Build)) {
