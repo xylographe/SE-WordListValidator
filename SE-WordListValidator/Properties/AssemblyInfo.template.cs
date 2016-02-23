@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("xvzo")]
 [assembly: AssemblyProduct("SE-WordListValidator")]
-[assembly: AssemblyCopyright("2015  Waldi Ravens")]
+[assembly: AssemblyCopyright("2015-2016  Waldi Ravens")]
 [assembly: AssemblyTrademark("GNU GPLv3 licensed")]
 [assembly: AssemblyCulture("")]
 
