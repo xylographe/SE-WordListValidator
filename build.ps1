@@ -1,5 +1,5 @@
 ﻿<#
-	Copyright © 2015-2016 Waldi Ravens
+	Copyright © 2015-2019 Waldi Ravens
 
 	This file is part of SE-WordListValidator.
 
@@ -297,6 +297,29 @@ function Create-Archive {
 	}
 }
 function Invoke-MSBuild {
+	$vspath = try { vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath } catch { $null }
+	if ($vspath) {
+		if ($Verbose) { $Host.UI.WriteVerboseLine("Visual Studio installation path = '$vspath'") }
+		if ([string]::IsNullOrEmpty($env:VSINSTALLDIR)) {
+			$path = join-path $vspath Common7
+			$path = (get-childitem -file -recurse -literalpath $path -filter VsDevCmd.bat | select-object -first 1).FullName
+			if (test-path -type Leaf -literalpath $path) {
+				if ($Verbose) { $Host.UI.WriteVerboseLine("VsDevCmd.bat = '$path'") }
+				$options = '-no_logo -arch=amd64 -host_arch=amd64 -app_platform=Desktop'
+				&$env:ComSpec /S /C """${path}"" ${options} && set" | foreach-object {
+					$name, $value = $_ -csplit '=', 2
+					set-content -literalpath env:\"${name}" -value $value
+				}
+			}
+		}
+		$path = join-path $vspath MSBuild
+		$path = (get-childitem -file -recurse -literalpath $path -filter MSBuild.exe | select-object -first 1).FullName
+		if (test-path -type Leaf -literalpath $path) {
+			if ($Verbose) { $Host.UI.WriteVerboseLine("MSBuild.exe = '$path'") }
+			&$path @args
+			return
+		}
+	}
 	$vsct = try { (get-item -path env:\VS???COMNTOOLS | sort-object -property Name)[-1].Value } catch { $null }
 	if ($vsct) {
 		cmd.exe /C "CALL ""${vsct}vsvars32.bat"" & MSBuild.exe ""$($args -join '" "')"""
