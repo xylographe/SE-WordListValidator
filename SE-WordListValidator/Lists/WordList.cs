@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright © 2015-2016 Waldi Ravens
+    Copyright © 2015-2019 Waldi Ravens
 
     This file is part of SE-WordListValidator.
 
@@ -71,20 +71,24 @@ namespace SubtitleEditWordListValidator
 
         private class WordComparer : IComparer<string>
         {
-            private readonly StringComparer cssc;
-            private readonly StringComparer osc;
+            private readonly StringComparer caseInsensitive;
+            private readonly StringComparer caseSensitive;
+            private readonly StringComparer ordinal;
 
             public WordComparer(CultureInfo ci)
             {
-                cssc = StringComparer.Create(ci, false);
-                osc = StringComparer.Ordinal;
+                caseInsensitive = StringComparer.Create(ci, true);
+                caseSensitive = StringComparer.Create(ci, false);
+                ordinal = StringComparer.Ordinal;
             }
 
             public int Compare(string a, string b)
             {
-                int c = cssc.Compare(a, b);
+                int c = caseInsensitive.Compare(a, b);
                 if (c == 0)
-                    c = osc.Compare(a, b);
+                    c = caseSensitive.Compare(a, b);
+                if (c == 0)
+                    c = ordinal.Compare(a, b);
                 return c;
             }
         }

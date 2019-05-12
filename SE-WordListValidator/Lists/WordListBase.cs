@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright © 2015-2016 Waldi Ravens
+    Copyright © 2015-2019 Waldi Ravens
 
     This file is part of SE-WordListValidator.
 
@@ -18,7 +18,10 @@
 */
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 
@@ -30,6 +33,7 @@ namespace SubtitleEditWordListValidator
         {
             protected readonly XmlWriterSettings _xmlWriterSettings;
             protected readonly WordListFactory _factory;
+            protected readonly WordComparer _comparer;
             private readonly string _originalFullName;
             private string _currentFullName;
             private string _originalDigest;
@@ -54,13 +58,45 @@ namespace SubtitleEditWordListValidator
 
             protected abstract void ValidateRoot(XmlDocument document, XmlReader reader);
 
-            public WordListBase(WordListFactory wlf, string path, bool CanFind = false)
+            public WordListBase(WordListFactory wlf, string path, bool canFind = false)
             {
-                _canFind = CanFind;
+                _canFind = canFind;
                 _originalFullName = Path.GetFullPath(path);
+                _comparer = new WordComparer(GetCultureInfoFromFileName(Path.GetFileName(path)));
                 _xmlWriterSettings = new XmlWriterSettings { CloseOutput = true, Encoding = wlf.XmlEncoding, Indent = true, OmitXmlDeclaration = true };
                 wlf.WordLists.Add(this);
                 _factory = wlf;
+            }
+
+            private CultureInfo GetCultureInfoFromFileName(string fileName)
+            {
+                if (!string.IsNullOrEmpty(fileName))
+                {
+                    var match = Regex.Match(fileName, @"\A([a-z]{2,3}(?:[-_][A-Z][a-z]+)?[-_][A-Z]{2})[-_]");
+                    if (match.Success)
+                    {
+                        var cultureId = match.Groups[1].Value.Replace('_', '-');
+                        try { return CultureInfo.CreateSpecificCulture(cultureId); } catch {}
+                        try { return CultureInfo.GetCultureInfo(cultureId); } catch {}
+                    }
+                    match = Regex.Match(fileName, @"\A([a-z]{2,3}(?:[-_][A-Z][a-z]+)?)[-_]");
+                    if (match.Success)
+                    {
+                        var cultureId = match.Groups[1].Value.Replace('_', '-');
+                        try { return CultureInfo.CreateSpecificCulture(cultureId); } catch {}
+                        try { return CultureInfo.GetCultureInfo(cultureId); } catch {}
+                        if (cultureId.Length == 3)
+                        {
+                            var cultureInfo = CultureInfo.GetCultures(CultureTypes.SpecificCultures).FirstOrDefault(ci => ci.ThreeLetterISOLanguageName == cultureId);
+                            if (cultureInfo != null)
+                            {
+                                try { return CultureInfo.CreateSpecificCulture(cultureInfo.TwoLetterISOLanguageName); } catch {}
+                                try { return CultureInfo.GetCultureInfo(cultureInfo.TwoLetterISOLanguageName); } catch {}
+                            }
+                        }
+                    }
+                }
+                return CultureInfo.InvariantCulture;
             }
 
             public void Validate(Form owner)

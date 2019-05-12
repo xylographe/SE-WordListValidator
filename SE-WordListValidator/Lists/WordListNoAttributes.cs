@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright © 2015-2016 Waldi Ravens
+    Copyright © 2015-2019 Waldi Ravens
 
     This file is part of SE-WordListValidator.
 
@@ -152,10 +152,8 @@ namespace SubtitleEditWordListValidator
                     }
                     comments.Clear();
                 }
-                {
-                    var s = Name.EndsWith(NameSuffix, StringComparison.Ordinal) ? Name.Remove(Name.Length - NameSuffix.Length).Replace('_', '-') : string.Empty;
-                    list.Sort(new WordComparer(CultureInfo.CreateSpecificCulture(s)));
-                }
+
+                list.Sort(_comparer);
                 foreach (var w in list)
                 {
                     foreach (var c in nmap[w])

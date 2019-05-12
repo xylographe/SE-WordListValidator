@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright © 2015-2016 Waldi Ravens
+    Copyright © 2015-2019 Waldi Ravens
 
     This file is part of SE-WordListValidator.
 
@@ -59,7 +59,7 @@ namespace SubtitleEditWordListValidator
             private Regex _regex;
 
             public OcrFixReplaceList(WordListFactory wlf, string path)
-                : base(wlf, path, CanFind: true)
+                : base(wlf, path, canFind: true)
             {
             }
 
