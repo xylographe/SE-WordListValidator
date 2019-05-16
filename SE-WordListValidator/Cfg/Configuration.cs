@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright © 2015 Waldi Ravens
+    Copyright © 2015-2019 Waldi Ravens
 
     This file is part of SE-WordListValidator.
 
@@ -23,8 +23,50 @@ namespace SubtitleEditWordListValidator
 {
     public static class Configuration
     {
+        private const int _platformWindows = 1;
+        private const int _platformLinux = 2;
+        private const int _platformMac = 3;
+        private static int _platform;
+
+        public static bool IsRunningOnWindows
+        {
+            get
+            {
+                if (_platform == 0)
+                {
+                    _platform = GetPlatform();
+                }
+                return _platform == _platformWindows;
+            }
+        }
+
+        public static bool IsRunningOnLinux
+        {
+            get
+            {
+                if (_platform == 0)
+                {
+                    _platform = GetPlatform();
+                }
+                return _platform == _platformLinux;
+            }
+        }
+
+        public static bool IsRunningOnMac
+        {
+            get
+            {
+                if (_platform == 0)
+                {
+                    _platform = GetPlatform();
+                }
+                return _platform == _platformMac;
+            }
+        }
+
         private static string _settingsFileName;
         private static Settings _settings;
+
         public static Settings Settings
         {
             get
@@ -42,6 +84,7 @@ namespace SubtitleEditWordListValidator
         }
 
         private static Version _version;
+
         public static Version Version
         {
             get
@@ -59,6 +102,16 @@ namespace SubtitleEditWordListValidator
                 }
                 return _version;
             }
+        }
+
+        private static int GetPlatform()
+        {
+            // Current versions of Mono report the platform as Unix
+            return Environment.OSVersion.Platform == PlatformID.MacOSX || (Environment.OSVersion.Platform == PlatformID.Unix && Directory.Exists("/Applications") && Directory.Exists("/System") && Directory.Exists("/Users"))
+                 ? _platformMac
+                 : Environment.OSVersion.Platform == PlatformID.Unix
+                 ? _platformLinux
+                 : _platformWindows;
         }
 
         private static string DetermineSettingsFileName()
