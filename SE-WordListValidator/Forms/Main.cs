@@ -113,25 +113,25 @@ namespace SubtitleEditWordListValidator
                 toolStripMenuItemFile.ToolTipText = string.Empty;
                 treeViewWordLists.Nodes[0].Nodes.Clear();
                 panelFind.Visible = false;
-                foreach (var path in Directory.EnumerateFiles(wordListFolder, "*_OCRFixReplaceList.xml"))
+                foreach (var path in _wlf.EnumerateOcrFixReplaceFiles(wordListFolder))
                 {
                     var wl = _wlf.CreateOcrFixReplaceList(path);
                     treeViewWordLists.Nodes[0].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
                 treeViewWordLists.Nodes[1].Nodes.Clear();
-                foreach (var path in Directory.EnumerateFiles(wordListFolder, "*_NoBreakAfterList.xml"))
+                foreach (var path in _wlf.EnumerateNoBreakAfterFiles(wordListFolder))
                 {
                     var wl = _wlf.CreateNoBreakAfterList(path);
                     treeViewWordLists.Nodes[1].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
                 treeViewWordLists.Nodes[2].Nodes.Clear();
-                foreach (var path in Directory.EnumerateFiles(wordListFolder, "*names_etc.xml"))
+                foreach (var path in _wlf.EnumerateNamesEtcFiles(wordListFolder))
                 {
                     var wl = _wlf.CreateNamesEtcList(path);
                     treeViewWordLists.Nodes[2].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
                 }
                 treeViewWordLists.Nodes[3].Nodes.Clear();
-                foreach (var path in Directory.EnumerateFiles(wordListFolder, "??_??_user.xml"))
+                foreach (var path in _wlf.EnumerateUserFiles(wordListFolder))
                 {
                     var wl = _wlf.CreateUserList(path);
                     treeViewWordLists.Nodes[3].Nodes.Add(new TreeNode { Tag = wl, Text = wl.Name, ContextMenuStrip = contextMenuStripWordLists });
