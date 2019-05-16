@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright © 2015 Waldi Ravens
+    Copyright © 2015-2019 Waldi Ravens
 
     This file is part of SE-WordListValidator.
 
@@ -23,12 +23,17 @@ namespace SubtitleEditWordListValidator
     {
         private sealed class UserList : WordListNoAttributes
         {
-            private const string NameSuffix = "_user";
-            private const string RootName = "words";
-            private const string ItemName = "word";
+            private const string _RootName = "words";
+            private const string _ItemName = "word";
+
+            private static readonly SubListSpec _RootSpec = new SubListSpec
+            {
+                RootName = _RootName,
+                ItemName = _ItemName,
+            };
 
             public UserList(WordListFactory wlf, string path)
-                : base(wlf, path, NameSuffix, RootName, ItemName)
+                : base(wlf, path, _RootSpec)
             {
             }
 

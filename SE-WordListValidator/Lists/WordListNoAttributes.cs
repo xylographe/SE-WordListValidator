@@ -18,7 +18,9 @@
 */
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Xml;
 
 namespace SubtitleEditWordListValidator
@@ -27,38 +29,132 @@ namespace SubtitleEditWordListValidator
     {
         private abstract class WordListNoAttributes : WordListBase
         {
-            private readonly string NameSuffix;
-            private readonly string RootName;
-            private readonly string ItemName;
+            protected sealed class SubListSpec
+            {
+                public string RootName { get; set; }
+                public string ItemName { get; set; }
+                public SubListSpec[] SubLists { get; set; }
+            }
 
-            public WordListNoAttributes(WordListFactory wlf, string path, string nameSuffix, string rootName, string itemName)
+            private class SubList : List<SubList>
+            {
+                public int Depth { get; }
+                public string Name { get; }
+                public SubList Parent { get; }
+                public ItemList Items { get; }
+                public List<XmlNode> Comments { get; }
+                public List<XmlNode> EndComments { get; }
+
+                public SubList(SubListSpec spec)
+                    : base(1)
+                {
+                    Name = string.Empty;
+                    Comments = new List<XmlNode>(1);
+                    EndComments = new List<XmlNode>(1);
+                    Add(new SubList(this, spec));
+                }
+
+                private SubList(SubList parent, SubListSpec spec)
+                    : base(spec.SubLists?.Length ?? 0)
+                {
+                    Name = spec.RootName;
+                    Comments = new List<XmlNode>(1);
+                    EndComments = new List<XmlNode>(1);
+                    Parent = parent;
+                    Depth = parent.Depth + 1;
+                    if (spec.ItemName != null)
+                    {
+                        Items = new ItemList(spec.ItemName);
+                    }
+                    if (spec.SubLists != null)
+                    {
+                        foreach (var sub in spec.SubLists)
+                        {
+                            Add(new SubList(this, sub));
+                        }
+                    }
+                }
+
+                public SubList this[string name]
+                {
+                    get
+                    {
+                        return Find(e => e.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                    }
+                }
+
+                public bool Contains(string name)
+                {
+                    return Exists(e => e.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+
+            private class ItemList : KeyedCollection<string, Item>
+            {
+                public string Name { get; }
+
+                public ItemList(string itemName)
+                    : base(StringComparer.Ordinal)
+                {
+                    Name = itemName;
+                }
+
+                public bool Add(string text, out Item item)
+                {
+                    item = null;
+                    Dictionary?.TryGetValue(text, out item);
+                    if (item == null)
+                    {
+                        Add((item = new Item(text)));
+                        return true;
+                    }
+                    return false;
+                }
+
+                protected override string GetKeyForItem(Item item)
+                {
+                    return item.Text;
+                }
+            }
+
+            private class Item
+            {
+                public string Text { get; }
+                public List<XmlNode> Comments { get; }
+
+                public Item(string text)
+                {
+                    Text = text;
+                    Comments = new List<XmlNode>(1);
+                }
+            }
+
+            private readonly SubListSpec _RootSpec;
+
+            protected WordListNoAttributes(WordListFactory wlf, string path, SubListSpec spec)
                 : base(wlf, path)
             {
-                NameSuffix = nameSuffix;
-                RootName = rootName;
-                ItemName = itemName;
+                _RootSpec = spec;
             }
 
             protected sealed override void ValidateRoot(XmlDocument document, XmlReader reader)
             {
-                var nmap = new Dictionary<string, List<XmlNode>>(15000, StringComparer.Ordinal);
-                var list = new List<string>(10000);
-                var root = document.CreateElement(RootName);
-                var rootcomments = new List<XmlNode>();
-                var comments = new List<XmlNode>();
-                var element = (string)null;
+                var targetComments = (List<XmlNode>)null;
+                var comments = new List<XmlNode>(11);
+                var list = new SubList(_RootSpec);
+
                 while (reader.Read())
                 {
                     if (reader.NodeType == XmlNodeType.Whitespace)
                     {
-                        if (element != null && reader.Value.ContainsLinefeed())
+                        if (targetComments != null && reader.Value.ContainsLinefeed())
                         {
                             if (comments.Count > 0)
                             {
-                                nmap[element].AddRange(comments);
+                                targetComments.AddRange(comments);
                                 comments.Clear();
                             }
-                            element = null;
+                            targetComments = null;
                         }
                     }
                     else if (reader.NodeType == XmlNodeType.Comment)
@@ -69,71 +165,60 @@ namespace SubtitleEditWordListValidator
                     {
                         comments.Add(document.CreateCDataSection(reader.Value.ReplaceWhiteSpace()));
                     }
-                    else if (reader.Depth == 2 && reader.NodeType == XmlNodeType.Text)
+                    else if (reader.Depth == list.Depth && reader.NodeType == XmlNodeType.Element)
+                    {
+                        if (!reader.HasAttributes && reader.Name.Equals(list.Items?.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            targetComments = null;
+                        }
+                        else if (!reader.HasAttributes && list.Contains(reader.Name))
+                        {
+                            list = list[reader.Name];
+                            targetComments = list.Comments;
+                            if (comments.Count > 0)
+                            {
+                                targetComments.AddRange(comments);
+                                comments.Clear();
+                            }
+                            if (reader.IsEmptyElement)
+                            {
+                                targetComments = list.EndComments;
+                                list = list.Parent;
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception(string.Format("Invalid element <{0}…> in <{1}>", reader.Name, list.Name));
+                        }
+                    }
+                    else if (reader.Depth == list.Depth + 1 && reader.NodeType == XmlNodeType.Text)
                     {
                         if(!string.IsNullOrWhiteSpace(reader.Value))
                         {
-                            element = reader.Value;
-                            if (nmap.ContainsKey(element))
+                            if (!list.Items.Add(reader.Value, out var item))
                             {
-                                nmap[element].AddRange(comments);
-                                comments.Clear();
                                 _factory.Verbose(reader, string.Format("Removed duplicate »{0}«", reader.Value));
                             }
-                            else
-                            {
-                                nmap.Add(element, comments);
-                                list.Add(element);
-                                comments.Clear();
-                            }
-                        }
-                    }
-                    else if (reader.Depth == 1 && reader.NodeType == XmlNodeType.Element)
-                    {
-                        if (element != null)
-                        {
                             if (comments.Count > 0)
                             {
-                                nmap[element].AddRange(comments);
+                                item.Comments.AddRange(comments);
                                 comments.Clear();
                             }
-                            element = null;
-                        }
-                        if (reader.HasAttributes || !reader.Name.Equals(ItemName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            throw new Exception(string.Format("Invalid element <{0}…> in <{1}>", reader.Name, root.Name));
+                            targetComments = item.Comments;
                         }
                     }
-                    else if (reader.Depth == 1 && reader.NodeType == XmlNodeType.EndElement)
+                    else if (reader.Depth == list.Depth && reader.NodeType == XmlNodeType.EndElement)
                     {
                     }
-                    else if (reader.Depth == 0 && reader.NodeType == XmlNodeType.Element)
+                    else if (reader.Depth == list.Depth - 1 && reader.NodeType == XmlNodeType.EndElement)
                     {
                         if (comments.Count > 0)
                         {
-                            foreach (var c in comments)
-                            {
-                                document.AppendChild(c);
-                            }
+                            list.EndComments.AddRange(comments);
                             comments.Clear();
                         }
-                        document.AppendChild(root);
-                    }
-                    else if (reader.Depth == 0 && reader.NodeType == XmlNodeType.EndElement)
-                    {
-                        if (comments.Count > 0)
-                        {
-                            if (element != null)
-                            {
-                                nmap[element].AddRange(comments);
-                                element = null;
-                            }
-                            else
-                            {
-                                rootcomments = comments;
-                            }
-                            comments.Clear();
-                        }
+                        targetComments = list.EndComments;
+                        list = list.Parent;
                     }
                     else if (reader.Depth == 0 && reader.NodeType == XmlNodeType.XmlDeclaration)
                     {
@@ -144,6 +229,7 @@ namespace SubtitleEditWordListValidator
                         throw new Exception(string.Format("Unexpected {0} node", reader.NodeType));
                     }
                 }
+                document.AppendChild(GenerateRoot(document, document, list[0]));
                 if (comments.Count > 0)
                 {
                     foreach (var c in comments)
@@ -152,25 +238,37 @@ namespace SubtitleEditWordListValidator
                     }
                     comments.Clear();
                 }
+            }
 
-                list.Sort(_comparer);
-                foreach (var w in list)
+            private XmlNode GenerateRoot(XmlDocument document, XmlNode parent, SubList list)
+            {
+                var root = document.CreateElement(list.Name);
+                parent.AppendChild(root);
+                foreach (var c in list.Comments)
                 {
-                    foreach (var c in nmap[w])
-                    {
-                        root.AppendChild(c);
-                    }
-                    var e = document.CreateElement(ItemName);
-                    root.AppendChild(e).AppendChild(document.CreateTextNode(w));
+                    parent.InsertBefore(c, root);
                 }
-                if (rootcomments.Count > 0)
+                foreach (var sl in list)
                 {
-                    foreach (var c in rootcomments)
-                    {
-                        root.AppendChild(c);
-                    }
-                    rootcomments.Clear();
+                    root.AppendChild(GenerateRoot(document, root, sl));
                 }
+                if (list.Items != null)
+                {
+                    var itemName = list.Items.Name;
+                    foreach (var item in list.Items.OrderBy(i => i.Text, _comparer))
+                    {
+                        foreach (var c in item.Comments)
+                        {
+                            root.AppendChild(c);
+                        }
+                        root.AppendChild(document.CreateElement(itemName)).AppendChild(document.CreateTextNode(item.Text));
+                    }
+                }
+                foreach (var c in list.EndComments)
+                {
+                    parent.AppendChild(c);
+                }
+                return root;
             }
 
         }

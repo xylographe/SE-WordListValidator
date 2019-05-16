@@ -64,13 +64,6 @@ namespace SubtitleEditWordListValidator
 
     public sealed partial class WordListFactory
     {
-        private const string GitHub = "https://github.com/SubtitleEdit/subtitleedit/edit/master/Dictionaries/";
-        private readonly List<WordListBase> WordLists = new List<WordListBase>();
-        private readonly HashAlgorithm SHA512 = HashAlgorithm.Create("SHA512");
-        private readonly XmlReaderSettings XmlReaderSettings;
-        private readonly UTF8Encoding XmlEncoding;
-        private readonly Logger Logger;
-
         private class WordComparer : IComparer<string>
         {
             private readonly StringComparer caseInsensitive;
@@ -95,6 +88,13 @@ namespace SubtitleEditWordListValidator
             }
         }
 
+        private const string GitHub = "https://github.com/SubtitleEdit/subtitleedit/edit/master/Dictionaries/";
+        private readonly List<WordListBase> WordLists = new List<WordListBase>();
+        private readonly HashAlgorithm SHA512 = HashAlgorithm.Create("SHA512");
+        private readonly XmlReaderSettings XmlReaderSettings;
+        private readonly UTF8Encoding XmlEncoding;
+        private readonly Logger Logger;
+
         public WordListFactory(Logger logger)
         {
             Logger = logger;
@@ -114,7 +114,7 @@ namespace SubtitleEditWordListValidator
 
         public IEnumerable<string> EnumerateNamesEtcFiles(string wordListFolder)
         {
-            return EnumerateWordListFiles(wordListFolder, "*names_etc.xml");
+            return EnumerateWordListFiles(wordListFolder, "*names.xml");
         }
 
         public IEnumerable<string> EnumerateUserFiles(string wordListFolder)

@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright © 2015 Waldi Ravens
+    Copyright © 2015-2019 Waldi Ravens
 
     This file is part of SE-WordListValidator.
 
@@ -23,12 +23,21 @@ namespace SubtitleEditWordListValidator
     {
         private sealed class NamesEtcList : WordListNoAttributes
         {
-            private const string NameSuffix = "_names_etc";
-            private const string RootName = "ignore_list";
-            private const string ItemName = "name";
+            private const string _RootName = "names";
+            private const string _ItemName = "name";
+
+            private static readonly SubListSpec _RootSpec = new SubListSpec
+            {
+                RootName = _RootName,
+                ItemName = _ItemName,
+                SubLists = new[]
+                {
+                    new SubListSpec { RootName = "blacklist", ItemName = _ItemName }
+                }
+            };
 
             public NamesEtcList(WordListFactory wlf, string path)
-                : base(wlf, path, NameSuffix, RootName, ItemName)
+                : base(wlf, path, _RootSpec)
             {
             }
 
