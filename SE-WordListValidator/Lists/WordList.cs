@@ -120,13 +120,17 @@ namespace SubtitleEditWordListValidator
             return new UserList(this, path);
         }
 
-        public void Close(Form owner)
+        public bool Close(Form owner)
         {
             foreach (var wl in WordLists)
             {
-                wl.Close(owner);
+                if (!wl.Close(owner))
+                {
+                    return false;
+                }
             }
             WordLists.Clear();
+            return true;
         }
 
         private void Verbose(XmlReader reader, string msg)

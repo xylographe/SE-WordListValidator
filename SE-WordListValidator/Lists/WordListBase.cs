@@ -261,7 +261,7 @@ namespace SubtitleEditWordListValidator
             {
             }
 
-            internal void Close(Form owner)
+            internal bool Close(Form owner)
             {
                 if (_currentFullName != null && File.Exists(_currentFullName))
                 {
@@ -295,12 +295,16 @@ namespace SubtitleEditWordListValidator
                             }
                             File.Delete(_currentFullName);
                             _currentFullName = null;
+                            return true;
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            _factory.Logger.Error(string.Format("Failed to close {0}: {1}", Name, ex.Message));
                         }
                     }
+                    return false;
                 }
+                return true;
             }
 
             private bool SetCurrent(Form owner)

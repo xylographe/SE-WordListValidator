@@ -108,10 +108,8 @@ namespace SubtitleEditWordListValidator
 
         private void InitializeWordListView(string wordListFolder)
         {
-            if (wordListFolder != null && !FileNameEquals(wordListFolder, _wordListFolder))
+            if (wordListFolder != null && !FileNameEquals(wordListFolder, _wordListFolder) && _wlf.Close(this))
             {
-                _wlf.Close(this);
-
                 toolStripMenuItemFile.ToolTipText = string.Empty;
                 treeViewWordLists.Nodes[0].Nodes.Clear();
                 panelFind.Visible = false;
@@ -226,7 +224,10 @@ namespace SubtitleEditWordListValidator
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
             _settings.Save();
-            _wlf.Close(this);
+            if (e.CloseReason != CloseReason.ApplicationExitCall && e.CloseReason != CloseReason.TaskManagerClosing && e.CloseReason != CloseReason.WindowsShutDown && !_wlf.Close(this))
+            {
+                e.Cancel = true;
+            }
         }
 
         private void TextBoxTerminal_MouseDoubleClick(object sender, MouseEventArgs e)
