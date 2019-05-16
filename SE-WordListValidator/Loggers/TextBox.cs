@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright © 2015 Waldi Ravens
+    Copyright © 2015-2019 Waldi Ravens
 
     This file is part of SE-WordListValidator.
 
@@ -21,42 +21,37 @@ using System.Windows.Forms;
 
 namespace SubtitleEditWordListValidator
 {
-    public class Logger
+    public class TextBoxLogger : Logger
     {
-        private const string pVerbose = "VERBOSE\t: ";
-        private const string pError   = "ERROR\t: ";
-        private const string pWarn    = "WARNING: ";
-        private const string pInfo    = "INFO\t: ";
-
         private TextBox _out;
 
-        public Logger(TextBox tb)
+        public TextBoxLogger(TextBox tb)
         {
             _out = tb;
         }
 
-        public void Verbose(string text)
+        public override void Verbose(string text)
         {
             _out.AppendText(pVerbose);
             _out.AppendText(text.NormalizeNewLine());
             _out.AppendText(Environment.NewLine);
         }
 
-        public void Error(string text)
+        public override void Error(string text)
         {
             _out.AppendText(pError);
             _out.AppendText(text.NormalizeNewLine());
             _out.AppendText(Environment.NewLine);
         }
 
-        public void Warn(string text)
+        public override void Warn(string text)
         {
             _out.AppendText(pWarn);
             _out.AppendText(text.NormalizeNewLine());
             _out.AppendText(Environment.NewLine);
         }
 
-        public void Info(string text)
+        public override void Info(string text)
         {
             _out.AppendText(pInfo);
             _out.AppendText(text.NormalizeNewLine());

@@ -38,7 +38,7 @@ namespace SubtitleEditWordListValidator
             InitializeComponent();
             Icon = Properties.Resources.FormIcon;
 
-            _log = new Logger(textBoxTerminal);
+            _log = new TextBoxLogger(textBoxTerminal);
             _wlf = new WordListFactory(_log);
 
             var osPlatform = (int)Environment.OSVersion.Platform;
