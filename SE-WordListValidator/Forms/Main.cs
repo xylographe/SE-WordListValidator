@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright © 2015 Waldi Ravens
+    Copyright © 2015-2019 Waldi Ravens
 
     This file is part of SE-WordListValidator.
 
@@ -41,9 +41,7 @@ namespace SubtitleEditWordListValidator
             _log = new TextBoxLogger(textBoxTerminal);
             _wlf = new WordListFactory(_log);
 
-            var osPlatform = (int)Environment.OSVersion.Platform;
-            var isLikeWindows = !(osPlatform == 4 || osPlatform == 6 || osPlatform == 128);
-            FileNameEquals = isLikeWindows ? new StringEquals(StringEqualsOrdinalIgnoreCase) : new StringEquals(StringEqualsOrdinal);
+            FileNameEquals = Configuration.IsRunningOnWindows ? new StringEquals(StringEqualsOrdinalIgnoreCase) : new StringEquals(StringEqualsOrdinal);
         }
 
         private bool StringEqualsOrdinalIgnoreCase(string a, string b)
