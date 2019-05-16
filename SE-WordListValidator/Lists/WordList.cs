@@ -19,6 +19,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -100,24 +102,44 @@ namespace SubtitleEditWordListValidator
             XmlReaderSettings = new XmlReaderSettings { CloseInput = true, XmlResolver = null };
         }
 
-        public WordList CreateOcrFixReplaceList(string path)
+        public IEnumerable<string> EnumerateOcrFixReplaceFiles(string wordListFolder)
         {
-            return new OcrFixReplaceList(this, path);
+            return EnumerateWordListFiles(wordListFolder, "*_OCRFixReplaceList.xml");
         }
 
-        public WordList CreateNoBreakAfterList(string path)
+        public IEnumerable<string> EnumerateNoBreakAfterFiles(string wordListFolder)
         {
-            return new NoBreakAfterList(this, path);
+            return EnumerateWordListFiles(wordListFolder, "*_NoBreakAfterList.xml");
         }
 
-        public WordList CreateNamesEtcList(string path)
+        public IEnumerable<string> EnumerateNamesEtcFiles(string wordListFolder)
         {
-            return new NamesEtcList(this, path);
+            return EnumerateWordListFiles(wordListFolder, "*names_etc.xml");
         }
 
-        public WordList CreateUserList(string path)
+        public IEnumerable<string> EnumerateUserFiles(string wordListFolder)
         {
-            return new UserList(this, path);
+            return EnumerateWordListFiles(wordListFolder, "??_??_user.xml");
+        }
+
+        public WordList CreateOcrFixReplaceList(string wordListFile)
+        {
+            return new OcrFixReplaceList(this, wordListFile);
+        }
+
+        public WordList CreateNoBreakAfterList(string wordListFile)
+        {
+            return new NoBreakAfterList(this, wordListFile);
+        }
+
+        public WordList CreateNamesEtcList(string wordListFile)
+        {
+            return new NamesEtcList(this, wordListFile);
+        }
+
+        public WordList CreateUserList(string wordListFile)
+        {
+            return new UserList(this, wordListFile);
         }
 
         public bool Close(Form owner)
@@ -131,6 +153,15 @@ namespace SubtitleEditWordListValidator
             }
             WordLists.Clear();
             return true;
+        }
+
+        private IEnumerable<string> EnumerateWordListFiles(string wordListFolder, string searchPattern)
+        {
+            if (wordListFolder != null && Directory.Exists(wordListFolder))
+            {
+                return Directory.EnumerateFiles(wordListFolder, searchPattern);
+            }
+            return Enumerable.Empty<string>();
         }
 
         private void Verbose(XmlReader reader, string msg)
