@@ -34,13 +34,17 @@ namespace SubtitleEditWordListValidator
                 new SubListInfo { Name = "WholeWords",         ItemName = "Word",      MethodName = "FromTo" },
                 new SubListInfo { Name = "PartialWordsAlways", ItemName = "WordPart",  MethodName = "FromTo" },
                 new SubListInfo { Name = "PartialWords",       ItemName = "WordPart",  MethodName = "FromTo" },
-                new SubListInfo { Name = "PartialLines",       ItemName = "LinePart",  MethodName = "FromTo" },
+                new SubListInfo { Name = "WholeLines",         ItemName = "Line",      MethodName = "FromTo" },
                 new SubListInfo { Name = "PartialLinesAlways", ItemName = "LinePart",  MethodName = "FromTo" },
+                new SubListInfo { Name = "PartialLines",       ItemName = "LinePart",  MethodName = "FromTo" },
                 new SubListInfo { Name = "BeginLines",         ItemName = "Beginning", MethodName = "FromTo" },
                 new SubListInfo { Name = "EndLines",           ItemName = "Ending",    MethodName = "FromTo" },
-                new SubListInfo { Name = "WholeLines",         ItemName = "Line",      MethodName = "FromTo" },
                 new SubListInfo { Name = "RegularExpressions", ItemName = "RegEx",     MethodName = null     }
             };
+            private Regex _regex;
+
+            private delegate void SubListValidator(SubList list, XmlDocument document, XmlReader reader);
+
             private struct SubListInfo
             {
                 public string Name;
@@ -48,7 +52,6 @@ namespace SubtitleEditWordListValidator
                 public string MethodName;
             }
 
-            private delegate void SubListValidator(SubList list, XmlDocument document, XmlReader reader);
             private struct SubList
             {
                 public string ItemName;
@@ -56,7 +59,6 @@ namespace SubtitleEditWordListValidator
                 public SubListValidator Validate;
                 public Dictionary<string, XmlElement> Elements;
             }
-            private Regex _regex;
 
             public OcrFixReplaceList(WordListFactory wlf, string path)
                 : base(wlf, path, canFind: true)
@@ -350,7 +352,7 @@ namespace SubtitleEditWordListValidator
                             }
                             if (!string.IsNullOrEmpty(from) && to != null)
                             {
-                                var key = string.Format("{0}\0{1}", from, to);
+                                var key = from + "\u0000" + to;
                                 if (list.Elements.ContainsKey(key))
                                 {
                                     item = list.Elements[key];
