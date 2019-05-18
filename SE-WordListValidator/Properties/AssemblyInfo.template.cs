@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("xvzo")]
 [assembly: AssemblyProduct("SE-WordListValidator")]
-[assembly: AssemblyCopyright("2015-2016  Waldi Ravens")]
+[assembly: AssemblyCopyright("2015-2019  Waldi Ravens")]
 [assembly: AssemblyTrademark("GNU GPLv3 licensed")]
 [assembly: AssemblyCulture("")]
 
@@ -33,4 +33,4 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 // [assembly: AssemblyFileVersion("1.0.*")]
-[assembly: AssemblyVersion("1.1.5.[REVNO]")]
+[assembly: AssemblyVersion("1.2.1.[REVNO]")]
