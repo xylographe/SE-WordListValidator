@@ -34,7 +34,7 @@ namespace SubtitleEditWordListValidator
         string Name { get; }
         bool CanFind { get; }
 
-        void Validate(Form owner);
+        bool Validate(Form owner);
         void Edit(Form owner);
         void Submit(Form owner);
         void Accept(Form owner);

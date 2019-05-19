@@ -68,38 +68,7 @@ namespace SubtitleEditWordListValidator
                 _factory = wlf;
             }
 
-            private CultureInfo GetCultureInfoFromFileName(string fileName)
-            {
-                if (!string.IsNullOrEmpty(fileName))
-                {
-                    var match = Regex.Match(fileName, @"\A([a-z]{2,3}(?:[-_][A-Z][a-z]+)?[-_][A-Z]{2})[-_]");
-                    if (match.Success)
-                    {
-                        var cultureId = match.Groups[1].Value.Replace('_', '-');
-                        try { return CultureInfo.CreateSpecificCulture(cultureId); } catch {}
-                        try { return CultureInfo.GetCultureInfo(cultureId); } catch {}
-                    }
-                    match = Regex.Match(fileName, @"\A([a-z]{2,3}(?:[-_][A-Z][a-z]+)?)[-_]");
-                    if (match.Success)
-                    {
-                        var cultureId = match.Groups[1].Value.Replace('_', '-');
-                        try { return CultureInfo.CreateSpecificCulture(cultureId); } catch {}
-                        try { return CultureInfo.GetCultureInfo(cultureId); } catch {}
-                        if (cultureId.Length == 3)
-                        {
-                            var cultureInfo = CultureInfo.GetCultures(CultureTypes.SpecificCultures).FirstOrDefault(ci => ci.ThreeLetterISOLanguageName == cultureId);
-                            if (cultureInfo != null)
-                            {
-                                try { return CultureInfo.CreateSpecificCulture(cultureInfo.TwoLetterISOLanguageName); } catch {}
-                                try { return CultureInfo.GetCultureInfo(cultureInfo.TwoLetterISOLanguageName); } catch {}
-                            }
-                        }
-                    }
-                }
-                return CultureInfo.InvariantCulture;
-            }
-
-            public void Validate(Form owner)
+            public bool Validate(Form owner)
             {
                 if (SetCurrent(owner))
                 {
@@ -128,6 +97,7 @@ namespace SubtitleEditWordListValidator
                             document.Save(writer);
                         }
                         log.Info(string.Format("Validation of {0} succeeded", Name));
+                        return true;
                     }
                     catch (Exception ex)
                     {
@@ -135,6 +105,7 @@ namespace SubtitleEditWordListValidator
                         log.Error(ex.Message);
                     }
                 }
+                return false;
             }
 
             public void Edit(Form owner)
@@ -195,7 +166,7 @@ namespace SubtitleEditWordListValidator
                         {
                             var original = new FileInfo(_originalFullName);
                             var dr = DialogResult.Yes;
-                            if (original.Exists)
+                            if (owner != null && original.Exists)
                             {
                                 if (original.Length != _originalLength || Digest(original) != _originalDigest)
                                 {
@@ -265,8 +236,9 @@ namespace SubtitleEditWordListValidator
             {
                 if (_currentFullName != null && File.Exists(_currentFullName))
                 {
+                    var ex = (Exception)null;
                     var dr = DialogResult.Yes;
-                    if (File.Exists(_originalFullName))
+                    if (owner != null && File.Exists(_originalFullName))
                     {
                         try
                         {
@@ -280,8 +252,9 @@ namespace SubtitleEditWordListValidator
                                 dr = MessageBox.Show(owner, msg, cap, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
                             }
                         }
-                        catch
+                        catch (Exception e)
                         {
+                            ex = e;
                             dr = DialogResult.Cancel;
                         }
                     }
@@ -297,14 +270,59 @@ namespace SubtitleEditWordListValidator
                             _currentFullName = null;
                             return true;
                         }
-                        catch (Exception ex)
+                        catch (Exception e)
                         {
-                            _factory.Logger.Error(string.Format("Failed to close {0}: {1}", Name, ex.Message));
+                            ex = e;
+                            dr = DialogResult.Cancel;
                         }
                     }
-                    return false;
+                    if (ex != null)
+                    {
+                        if (owner != null)
+                        {
+                            var cap = string.Format("Remove {0} working copy", Name);
+                            var msg = string.Format("Closing {0} working copy failed:\n\n{1}", Name, ex.Message);
+                            dr = MessageBox.Show(owner, msg, cap, MessageBoxButtons.OKCancel, MessageBoxIcon.Error, MessageBoxDefaultButton.Button2);
+                        }
+                        else
+                        {
+                            _factory.Logger.Error(string.Format("Closing working copy {0} failed: {1}", Name, ex.Message));
+                        }
+                    }
+                    return dr != DialogResult.Cancel;
                 }
                 return true;
+            }
+
+            private CultureInfo GetCultureInfoFromFileName(string fileName)
+            {
+                if (!string.IsNullOrEmpty(fileName))
+                {
+                    var match = Regex.Match(fileName, @"\A([a-z]{2,3}(?:[-_][A-Z][a-z]+)?[-_][A-Z]{2})[-_]");
+                    if (match.Success)
+                    {
+                        var cultureId = match.Groups[1].Value.Replace('_', '-');
+                        try { return CultureInfo.CreateSpecificCulture(cultureId); } catch {}
+                        try { return CultureInfo.GetCultureInfo(cultureId); } catch {}
+                    }
+                    match = Regex.Match(fileName, @"\A([a-z]{2,3}(?:[-_][A-Z][a-z]+)?)[-_]");
+                    if (match.Success)
+                    {
+                        var cultureId = match.Groups[1].Value.Replace('_', '-');
+                        try { return CultureInfo.CreateSpecificCulture(cultureId); } catch {}
+                        try { return CultureInfo.GetCultureInfo(cultureId); } catch {}
+                        if (cultureId.Length == 3)
+                        {
+                            var cultureInfo = CultureInfo.GetCultures(CultureTypes.SpecificCultures).FirstOrDefault(ci => ci.ThreeLetterISOLanguageName == cultureId);
+                            if (cultureInfo != null)
+                            {
+                                try { return CultureInfo.CreateSpecificCulture(cultureInfo.TwoLetterISOLanguageName); } catch {}
+                                try { return CultureInfo.GetCultureInfo(cultureInfo.TwoLetterISOLanguageName); } catch {}
+                            }
+                        }
+                    }
+                }
+                return CultureInfo.InvariantCulture;
             }
 
             private bool SetCurrent(Form owner)
@@ -335,9 +353,17 @@ namespace SubtitleEditWordListValidator
                         catch
                         {
                         }
-                        var cap = string.Format("Create {0} working copy", Name);
-                        var msg = string.Format("A previous {0} working copy exists!\n\nDo you want to use this previous working copy?", Name);
-                        dr = MessageBox.Show(owner, msg, cap, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button3);
+                        if (owner != null)
+                        {
+                            var cap = string.Format("Create {0} working copy", Name);
+                            var msg = string.Format("A previous {0} working copy exists!\n\nDo you want to use this previous working copy?", Name);
+                            dr = MessageBox.Show(owner, msg, cap, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button3);
+                        }
+                        else
+                        {
+                            log.Error(string.Format("Skipping {0} because a previous working copy exists", Name));
+                            return false;
+                        }
                     }
                     switch (dr)
                     {

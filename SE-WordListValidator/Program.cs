@@ -28,8 +28,13 @@ namespace SubtitleEditWordListValidator
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] argv)
         {
+            if (argv.Length > 0)
+            {
+                CommandLine.ValidateOrReturn(argv);
+            }
+
             Application.ThreadException += Application_ThreadException;
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;

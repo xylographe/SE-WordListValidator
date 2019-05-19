@@ -86,6 +86,7 @@
     <Compile Include="Loggers/Console.cs" />
     <Compile Include="Loggers/Logger.cs" />
     <Compile Include="Loggers/TextBox.cs" />
+    <Compile Include="CommandLine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Forms\Main.cs">
       <SubType>Form</SubType>
