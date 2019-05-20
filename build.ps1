@@ -270,7 +270,8 @@ function Increase-Version {
 	$currentVersion = (select-string -pattern $pattern -literalpath $file -casesensitive).Matches[0].Groups[2].Value
 	$newVersion = Get-NewVersion $currentVersion
 	if ($newVersion -cne $currentVersion) {
-		(get-content -encoding UTF8 -literalpath $file) -creplace $pattern, "`${1}${newVersion}`${3}" | set-content -encoding UTF8 -literalpath $file
+		$copyright = '^([ \t]*\[assembly:[ \t]*AssemblyCopyright\("2015-)([0-9]{4})([^"]+"\)\])'
+		(get-content -encoding UTF8 -literalpath $file) -creplace $pattern, "`${1}${newVersion}`${3}" -creplace $copyright, "`${1}$([datetime]::UtcNow|get-date -uformat %Y)`${3}" | set-content -encoding UTF8 -literalpath $file
 		git commit -am $newVersion 2>&1
 		git tag $newVersion 2>&1
 	}
