@@ -44,16 +44,17 @@ namespace SubtitleEditWordListValidator
 
     public static class StringExtensions
     {
-        private static readonly Regex WhiteSpaceRegex = new Regex(@"\A[^\S\r\n]+|[^\S\r\n]+\z", (RegexOptions.CultureInvariant | RegexOptions.Compiled));
+        private static readonly Regex ExcessRegex = new Regex(@"\A[^\S\r\n]+|[^\S\r\n]+\z", (RegexOptions.CultureInvariant | RegexOptions.Compiled));
+        private static readonly Regex EdgeRegex = new Regex(@"\A[^\S\r\n]*|[^\S\r\n]*\z", (RegexOptions.CultureInvariant | RegexOptions.Compiled));
 
         public static bool ContainsLinefeed(this string source)
         {
             return source.IndexOf((char)10) >= 0;
         }
 
-        public static string ReplaceWhiteSpace(this string source, string replacement = "")
+        public static string ReplaceExcessWhiteSpace(this string source, string replacement = "")
         {
-            return WhiteSpaceRegex.Replace(source, replacement);
+            return ExcessRegex.IsMatch(source) ? EdgeRegex.Replace(ExcessRegex.Replace(source, string.Empty), replacement) : source;
         }
 
         public static string NormalizeNewLine(this string source)

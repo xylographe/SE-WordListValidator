@@ -159,11 +159,11 @@ namespace SubtitleEditWordListValidator
                     }
                     else if (reader.NodeType == XmlNodeType.Comment)
                     {
-                        comments.Add(document.CreateComment(reader.Value.ReplaceWhiteSpace(" ")));
+                        comments.Add(document.CreateComment(reader.Value.ReplaceExcessWhiteSpace(" ")));
                     }
                     else if (reader.NodeType == XmlNodeType.CDATA)
                     {
-                        comments.Add(document.CreateCDataSection(reader.Value.ReplaceWhiteSpace()));
+                        comments.Add(document.CreateCDataSection(reader.Value.ReplaceExcessWhiteSpace()));
                     }
                     else if (reader.Depth == list.Depth && reader.NodeType == XmlNodeType.Element)
                     {
