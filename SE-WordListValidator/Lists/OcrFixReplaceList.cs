@@ -63,6 +63,7 @@ namespace SubtitleEditWordListValidator
             public OcrFixReplaceList(WordListFactory wlf, string path)
                 : base(wlf, path, canFind: true)
             {
+                _xmlWriterSettings.OmitXmlDeclaration = false;
             }
 
             protected override void FindItems(XmlDocument document, string input)

@@ -33,6 +33,7 @@ namespace SubtitleEditWordListValidator
             public NoBreakAfterList(WordListFactory wlf, string path)
                 : base(wlf, path)
             {
+                _xmlWriterSettings.OmitXmlDeclaration = true;
             }
 
             protected override void ValidateRoot(XmlDocument document, XmlReader reader)

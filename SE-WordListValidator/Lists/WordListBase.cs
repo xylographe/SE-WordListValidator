@@ -63,7 +63,7 @@ namespace SubtitleEditWordListValidator
                 _canFind = canFind;
                 _originalFullName = Path.GetFullPath(path);
                 _comparer = new WordComparer(GetCultureInfoFromFileName(Path.GetFileName(path)));
-                _xmlWriterSettings = new XmlWriterSettings { CloseOutput = true, Encoding = wlf.XmlEncoding, Indent = true, OmitXmlDeclaration = true };
+                _xmlWriterSettings = new XmlWriterSettings { Encoding = wlf.XmlEncoding, OmitXmlDeclaration = true, CloseOutput = true, Indent = true };
                 wlf.WordLists.Add(this);
                 _factory = wlf;
             }

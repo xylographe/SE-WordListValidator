@@ -45,6 +45,7 @@ namespace SubtitleEditWordListValidator
                 : base(wlf, path, _RootSpec)
             {
                 _removeBlacklist = Path.GetFileName(path).Equals("names.xml", StringComparison.OrdinalIgnoreCase);
+                _xmlWriterSettings.OmitXmlDeclaration = false;
             }
 
             protected override void ValidateRoot(XmlDocument document, XmlReader reader)

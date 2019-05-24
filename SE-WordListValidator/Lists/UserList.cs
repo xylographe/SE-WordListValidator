@@ -35,6 +35,7 @@ namespace SubtitleEditWordListValidator
             public UserList(WordListFactory wlf, string path)
                 : base(wlf, path, _RootSpec)
             {
+                _xmlWriterSettings.OmitXmlDeclaration = true;
             }
 
         }
