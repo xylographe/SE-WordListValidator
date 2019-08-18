@@ -137,7 +137,7 @@ namespace SubtitleEditWordListValidator
                 _RootSpec = spec;
             }
 
-            protected sealed override void ValidateRoot(XmlDocument document, XmlReader reader)
+            protected override void ValidateRoot(XmlDocument document, XmlReader reader)
             {
                 var targetComments = (List<XmlNode>)null;
                 var comments = new List<XmlNode>(11);
